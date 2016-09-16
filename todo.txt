@@ -1,3 +1,6 @@
+file "dt_config.py":
+    ConfigWriter: print out conditions correctly
+
 file "dt_renderer.py":
     class TableRenderer - Create window, render Events
     class TableRendererSettings
