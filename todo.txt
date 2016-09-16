@@ -1,18 +1,11 @@
-class ConfigReader - extract general settings, unique and recurring events
-class ConfigWriter - used to refactor / clean config files
-
-class EventFlags
-class Event
-class UniqueEvent
-class RecurringEvent
-
-class TableRenderer - Create window, render Events
-class TableRendererSettings
+file "dt_renderer.py":
+    class TableRenderer - Create window, render Events
+    class TableRendererSettings
 
 
-main program:
-Parse config,
-extract events
-create renderer
-Monitor file changes to config file, reparse if changed
-once per day: clean config file.
+file "dt_main.py":
+    Parse config,
+    extract events
+    create renderer
+    Monitor file changes to config file, reparse if changed
+    once per day: clean config file.
