@@ -1,5 +1,5 @@
-file "dt_config.py":
-    ConfigWriter: print out conditions correctly
+file dt_event.py:
+    take UniqueTime and RecurringTime as parameter instead of 4 ints on GetUniqueTimes and GetRecurringTimes
 
 file "dt_renderer.py":
     class TableRenderer - Create window, render Events

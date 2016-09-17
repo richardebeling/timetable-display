@@ -1,6 +1,7 @@
 #!/bin/python3
 
-# Config parser for the dementia timetable program. For an example config file, see "example.cfg"
+# Config parser for the dementia timetable program.
+# For an example config file, see "example.cfg"
 
 from dt_event import Event, UniqueEvent, RecurringEvent
 from datetime import datetime
@@ -12,33 +13,36 @@ class ConfigReader:
         self.recurring = []
         self.unique = []
 
-    def _parseEventDescription(self, line, event, section):
+    def _parseEventDescription(self, line: str, event: Event,
+                               section: str) -> None:
         event.description = line
         if section == "recurring":
             self.recurring.append(event)
         elif section == "unique":
             self.unique.append(event)
         else:
-            raise Exception ("Inside unknown section: " + line)
+            raise Exception("Inside unknown section: " + line)
 
-    def _parseRecurringEventTimes(self, line):
+    def _parseRecurringEventTimes(self, line: str) -> RecurringEvent:
         hour = -1
         minute = -1
         event = RecurringEvent()
 
         tokens = line.split()
         for token in tokens:
-            if ':' in token: # time
+            if ':' in token:  # time
                 split = token.split(':')
                 hour = split[0]
                 minute = split[1]
 
-            elif len(token) <= 2: # day of week
+            elif len(token) <= 2:  # day of week
                 condition = RecurringEvent.CONDITION_NONE
                 if len(token) == 2:
-                    if token[0] == 'g' or token[0] == 'e': # gerade Wochenzahl / even week number
+                    # gerade Wochenzahl / even week number
+                    if token[0] == 'g' or token[0] == 'e':
                         condition = RecurringEvent.CONDITION_EVEN
-                    elif token[0] == 'u' or token[0] == 'o': # ungerade Wochenzahl / odd week number
+                    # ungerade Wochenzahl / odd week number
+                    elif token[0] == 'u' or token[0] == 'o':
                         condition = RecurringEvent.CONDITION_ODD
                     else:
                         raise Exception("Unkown day condition: " + token)
@@ -46,18 +50,20 @@ class ConfigReader:
                 elif len(token) == 1:
                     dow = token
 
-                event.addRecurringTime(int(dow), int(hour), int(minute), condition)
+                event.addRecurringTime(int(dow), int(hour), int(minute),
+                                       condition)
 
             elif token.lower() in Event.VALID_MODIFIERS:
                 event.modifiers.append(token.lower())
 
             else:
                 raise Exception("Unknown identifier: " + token
-                        + " in line: " + line)
+                                + " in line: " + line)
 
         return event
 
-    def _parseUniqueEventTimes(self, line, dateformat):
+    def _parseUniqueEventTimes(self, line: str,
+                               dateformat: str) -> UniqueEvent:
         event = UniqueEvent()
 
         tokens = line.split()
@@ -66,13 +72,13 @@ class ConfigReader:
             try:
                 t = datetime.strptime(token, dateformat)
                 event.addUniqueTime(t.day, t.month, t.year,
-                        t.hour, t.minute)
+                                    t.hour, t.minute)
             except ValueError:
                 raise Exception("Error parsing: " + token)
 
         return event
 
-    def parse(self, filename):
+    def parse(self, filename: str) -> None:
         with open(filename) as f:
             section = "general"
             currentEvent = Event()
@@ -99,16 +105,19 @@ class ConfigReader:
                     expectingEventDescription = True
 
                 elif section == "unique":
-                    currentEvent = self._parseUniqueEventTimes(line, self.general['uniquedateformat'])
+                    currentEvent = self._parseUniqueEventTimes(
+                            line,
+                            self.general['uniquedateformat']
+                    )
                     expectingEventDescription = True
 
 
 class ConfigWriter():
-    def _hasPassed(self, t):
+    def _hasPassed(self, t: datetime) -> bool:
         n = datetime.now()
         return n > t
 
-    def _getRecurringString(self, event):
+    def _getRecurringString(self, event: RecurringEvent) -> str:
         line = ""
         added = []
         times = event.getRecurringTimes()
@@ -121,7 +130,8 @@ class ConfigWriter():
                 else:
                     firsttime = False
 
-                line += str(time.hour).zfill(2) + ":" + str(time.minute).zfill(2) + " "
+                line += str(time.hour).zfill(2) + ":"
+                line += str(time.minute).zfill(2) + " "
                 if time.condition == RecurringEvent.CONDITION_EVEN:
                     line += "g"
                 elif time.condition == RecurringEvent.CONDITION_ODD:
@@ -133,15 +143,15 @@ class ConfigWriter():
                 added.append(time)
 
                 for inner in times:
-                    if inner not in added \
-                    and inner.hour == time.hour \
-                    and inner.minute == time.minute:
+                    if (inner not in added
+                        and inner.hour == time.hour
+                            and inner.minute == time.minute):
                         line += " "
                         if inner.condition == RecurringEvent.CONDITION_EVEN:
                             line += "g"
                         elif inner.condition == RecurringEvent.CONDITION_ODD:
                             line += "u"
-                        elif not inner.condition == RecurringEvent.CONDITION_NONE:
+                        elif inner.condition != RecurringEvent.CONDITION_NONE:
                             raise("Fehler")
                         line += str(inner.dow)
                         added.append(inner)
@@ -151,8 +161,7 @@ class ConfigWriter():
 
         return line
 
-
-    def _getUniqueString(self, event, dateformat):
+    def _getUniqueString(self, event: UniqueEvent, dateformat: str) -> str:
         line = ""
         added = []
         times = event.getUniqueTimes()
@@ -161,9 +170,10 @@ class ConfigWriter():
         for time in times:
             if time not in added:
                 t = datetime(time.year, time.month, time.day,
-                        time.hour, time.minute)
+                             time.hour, time.minute)
 
                 if not self._hasPassed(t):
+
                     if not firsttime:
                         line += " "
                     else:
@@ -175,8 +185,9 @@ class ConfigWriter():
 
         return line
 
-
-    def _buildLines(self, general, recurring, unique):
+    def _buildLines(self, general: dict[str: str],
+                    recurring: list[RecurringEvent],
+                    unique: list[UniqueEvent]) -> list[str]:
         lines = []
         dateformat = general["uniquedateformat"]
 
@@ -201,7 +212,9 @@ class ConfigWriter():
 
         return lines
 
-    def write(self, filename, general, recurring, unique):
+    def write(self, filename: str, general: dict,
+              recurring: list[RecurringEvent],
+              unique: list[UniqueEvent]) -> None:
         lines = self._buildLines(general, recurring, unique)
         with open(filename, 'w') as f:
             f.write('\n'.join(lines))
@@ -212,7 +225,6 @@ class ConfigCleaner(ConfigReader, ConfigWriter):
         ConfigReader.init(self)
         ConfigWriter.init(self)
 
-    def clean(self, filename):
+    def clean(self, filename) -> None:
         self.parse(filename)
         self.write(filename, self.general, self.recurring, self.unique)
-
