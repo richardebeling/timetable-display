@@ -30,7 +30,7 @@ class RecurringEvent(Event):
         t = RecurringTime(dow, hour, minute, condition)
         self._times.append(t)
 
-    def getRecurringTimes(self) -> list[RecurringTime]:
+    def getRecurringTimes(self) -> list:
         return self._times
 
 
@@ -44,5 +44,5 @@ class UniqueEvent(Event):
         t = UniqueTime(day, month, year, hour, minute)
         self._times.append(t)
 
-    def getUniqueTimes(self) -> list[UniqueTime]:
+    def getUniqueTimes(self) -> list:
         return self._times

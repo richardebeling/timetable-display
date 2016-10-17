@@ -185,9 +185,9 @@ class ConfigWriter():
 
         return line
 
-    def _buildLines(self, general: dict[str: str],
-                    recurring: list[RecurringEvent],
-                    unique: list[UniqueEvent]) -> list[str]:
+    def _buildLines(self, general: dict,
+                    recurring: list,
+                    unique: list) -> list:
         lines = []
         dateformat = general["uniquedateformat"]
 
@@ -213,8 +213,8 @@ class ConfigWriter():
         return lines
 
     def write(self, filename: str, general: dict,
-              recurring: list[RecurringEvent],
-              unique: list[UniqueEvent]) -> None:
+              recurring: list,
+              unique: list) -> None:
         lines = self._buildLines(general, recurring, unique)
         with open(filename, 'w') as f:
             f.write('\n'.join(lines))

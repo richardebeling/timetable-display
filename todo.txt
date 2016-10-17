@@ -1,3 +1,7 @@
+file dt_config.py:
+    test removes 2 dates from example.cfg to test.cfg
+    -> Reader.read() or Writer.write() are buggy.
+
 file dt_event.py:
     take UniqueTime and RecurringTime as parameter instead of 4 ints on GetUniqueTimes and GetRecurringTimes
 

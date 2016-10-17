@@ -1,4 +1,4 @@
-#!/bin/python3
+#!/usr/bin/python3
 
 # dementia timetable class test file.
 
@@ -29,4 +29,3 @@ if filecmp.cmp("example.cfg", "test.cfg"):
     os.remove("test.cfg")
 else:
     print("mismatch: example.cfg -> test.cfg")
-
