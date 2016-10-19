@@ -1,11 +1,2 @@
 file "dt_renderer.py":
     class TableRenderer - Create window, render Events
-    class TableRendererSettings
-
-
-file "dt_main.py":
-    Parse config,
-    extract events
-    create renderer
-    Monitor file changes to config file, reparse if changed
-    once per day: clean config file.
