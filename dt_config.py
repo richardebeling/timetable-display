@@ -3,7 +3,9 @@
 # Config parser for the dementia timetable program.
 # For an example config file, see "example.cfg"
 
-from dt_event import Event, UniqueEvent, RecurringEvent
+from dt_event import Event
+from dt_event import UniqueEvent, UniqueTime
+from dt_event import RecurringEvent, RecurringTime
 from datetime import datetime
 
 
@@ -50,8 +52,8 @@ class ConfigReader:
                 elif len(token) == 1:
                     dow = token
 
-                event.addRecurringTime(int(dow), int(hour), int(minute),
-                                       condition)
+                t = RecurringTime(int(dow), int(hour), int(minute), condition)
+                event.addRecurringTime(t)
 
             elif token.lower() in Event.VALID_MODIFIERS:
                 event.modifiers.append(token.lower())
@@ -70,9 +72,9 @@ class ConfigReader:
         for token in tokens:
             token.strip()
             try:
-                t = datetime.strptime(token, dateformat)
-                event.addUniqueTime(t.day, t.month, t.year,
-                                    t.hour, t.minute)
+                d = datetime.strptime(token, dateformat)
+                t = UniqueTime(d.day, d.month, d.year, d.hour, d.minute)
+                event.addUniqueTime(t)
             except ValueError:
                 raise Exception("Error parsing: " + token)
 
