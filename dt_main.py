@@ -12,15 +12,26 @@ from shutil import copyfile
 
 
 class ConfigChangeHandler(FileSystemEventHandler):
+<<<<<<< HEAD
+    def __init__(self, filename, event_to_set):
+        FileSystemEventHandler.__init__(self)
+        self._filename = filename
+        self._event = event_to_set
+=======
     def __init__(self, filename, changeEvent):
         FileSystemEventHandler.__init__(self)
         self._filename = filename
         self._event = changeEvent
+>>>>>>> bf755c8437e05fdd7b9dc7d4829edcd9f54e451a
 
     def on_modified(self, event: FileModifiedEvent) -> None:
         if event.is_directory:
             return
+<<<<<<< HEAD
+        if self._filename == path.abspath(event.src_path):
+=======
         if self._filename in event.src_path:
+>>>>>>> bf755c8437e05fdd7b9dc7d4829edcd9f54e451a
             self._event.set()
 
 
@@ -42,7 +53,11 @@ class DementiaTimetable():
                 self._config_change_event
                 )
         self._observer = Observer()
+<<<<<<< HEAD
+        self._observer.schedule(handler, path.dirname(self._config_path))
+=======
         self._observer.schedule(handler, self._config_path)
+>>>>>>> bf755c8437e05fdd7b9dc7d4829edcd9f54e451a
         self._observer.start()
 
         self._reader = ConfigReader()
