@@ -15,7 +15,7 @@ class ConfigReader:
         self.recurring = []
         self.unique = []
 
-    def _parseEventDescription(self, line: str, event: Event,
+    def _parse_event_description(self, line: str, event: Event,
                                section: str) -> None:
         event.description = line
         if section == "recurring":
@@ -25,7 +25,7 @@ class ConfigReader:
         else:
             raise Exception("Inside unknown section: " + line)
 
-    def _parseRecurringEventTimes(self, line: str) -> RecurringEvent:
+    def _parse_recurring_event_times(self, line: str) -> RecurringEvent:
         hour = -1
         minute = -1
         event = RecurringEvent()
@@ -64,7 +64,7 @@ class ConfigReader:
 
         return event
 
-    def _parseUniqueEventTimes(self, line: str,
+    def _parse_unique_event_times(self, line: str,
                                dateformat: str) -> UniqueEvent:
         event = UniqueEvent()
 
@@ -92,7 +92,7 @@ class ConfigReader:
                     continue
 
                 if expectingEventDescription:
-                    self._parseEventDescription(line, currentEvent, section)
+                    self._parse_event_description(line, currentEvent, section)
                     expectingEventDescription = False
 
                 elif line[0] is '[' and line[-1] is ']':
@@ -103,11 +103,11 @@ class ConfigReader:
                     self.general[splits[0].strip()] = splits[1].strip()
 
                 elif section == "recurring":
-                    currentEvent = self._parseRecurringEventTimes(line)
+                    currentEvent = self._parse_recurring_event_times(line)
                     expectingEventDescription = True
 
                 elif section == "unique":
-                    currentEvent = self._parseUniqueEventTimes(
+                    currentEvent = self._parse_unique_event_times(
                             line,
                             self.general['uniquedateformat']
                     )
@@ -115,11 +115,11 @@ class ConfigReader:
 
 
 class ConfigWriter():
-    def _hasPassed(self, t: datetime) -> bool:
+    def _has_passed(self, t: datetime) -> bool:
         n = datetime.now()
         return n > t
 
-    def _getRecurringString(self, event: RecurringEvent) -> str:
+    def _get_recurring_string(self, event: RecurringEvent) -> str:
         line = ""
         added = []
         times = event.getRecurringTimes()
@@ -163,7 +163,7 @@ class ConfigWriter():
 
         return line
 
-    def _getUniqueString(self, event: UniqueEvent, dateformat: str) -> str:
+    def _get_unique_string(self, event: UniqueEvent, dateformat: str) -> str:
         line = ""
         added = []
         times = event.getUniqueTimes()
@@ -174,7 +174,7 @@ class ConfigWriter():
                 t = datetime(time.year, time.month, time.day,
                              time.hour, time.minute)
 
-                if not self._hasPassed(t):
+                if not self._has_passed(t):
 
                     if not firsttime:
                         line += " "
@@ -187,7 +187,7 @@ class ConfigWriter():
 
         return line
 
-    def _buildLines(self, general: dict,
+    def _build_lines(self, general: dict,
                     recurring: list,
                     unique: list) -> list:
         lines = []
@@ -201,14 +201,14 @@ class ConfigWriter():
 
         lines.append("[recurring]")
         for event in recurring:
-            lines.append(self._getRecurringString(event))
+            lines.append(self._get_recurring_string(event))
             lines.append(event.description)
             lines.append("")
         lines.append("")
 
         lines.append("[unique]")
         for event in unique:
-            lines.append(self._getUniqueString(event, dateformat))
+            lines.append(self._get_unique_string(event, dateformat))
             lines.append(event.description)
             lines.append("")
 
@@ -217,7 +217,7 @@ class ConfigWriter():
     def write(self, filename: str, general: dict,
               recurring: list,
               unique: list) -> None:
-        lines = self._buildLines(general, recurring, unique)
+        lines = self._build_lines(general, recurring, unique)
         with open(filename, 'w') as f:
             f.write('\n'.join(lines))
 

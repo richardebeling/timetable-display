@@ -26,13 +26,13 @@ class RecurringEvent(Event):
         Event.__init__(self)
         self._times = []
 
-    def addRecurringTime(self, t: RecurringTime) -> None:
+    def add_recurring_time(self, t: RecurringTime) -> None:
         self._times.append(t)
 
-    def getRecurringTimes(self) -> list:
+    def get_recurring_times(self) -> list:
         return self._times
 
-    def _dateMatchesRecurringTime(d: datetime.date, t: RecurringTime):
+    def _date_matches_recurring_time(d: datetime.date, t: RecurringTime):
         c_met = False
         if t.condition == RecurringEvent.CONDITION_NONE:
             c_met = True
@@ -42,14 +42,14 @@ class RecurringEvent(Event):
             c_met = (d.isocalendar()[1] % 2 == 0)
         return (c_met and d.weekday() == t.dow)
 
-    def getNextTimes(self, start: datetime.datetime,
-                     end: datetime.datetime) -> list[datetime.datetime]:
+    def get_next_times(self, start: datetime.datetime,
+                       end: datetime.datetime) -> list[datetime.datetime]:
         date = start
         times = []
 
         while date < end:
             for time in self._times:
-                if self._dateMatchesRecurringTime(date, time):
+                if self._date_matches_recurring_time(date, time):
                     date = date.replace(hour=time.hour, minute=time.minute)
                     if date > start and date < end:
                         times.append(date)
@@ -61,14 +61,14 @@ class UniqueEvent(Event):
         Event.__init__(self)
         self._times = []
 
-    def addUniqueTime(self, t: UniqueTime) -> None:
+    def add_unique_time(self, t: UniqueTime) -> None:
         self._times.append(t)
 
-    def getUniqueTimes(self) -> list:
+    def get_unique_times(self) -> list:
         return self._times
 
-    def getNextTimes(self, start: datetime.datetime,
-                     end: datetime.datetime) -> list[datetime.datetime]:
+    def get_next_times(self, start: datetime.datetime,
+                       end: datetime.datetime) -> list[datetime.datetime]:
         # todo
         print("test")
 
@@ -81,11 +81,17 @@ class RenderEvent(Event):
 
 class EventConverter():
     @staticmethod
-    def getRenderListFromUnique(max_count: int, max_time: datetime.datetime,
-                                event: UniqueEvent) -> list[RenderEvent]:
+    def get_render_list_from_unique(
+            max_count: int,
+            max_time: datetime.datetime,
+            event: UniqueEvent
+            ) -> list[RenderEvent]:
         print("test")
 
     @staticmethod
-    def getRenderListFromRecurring(max_count: int, max_time: datetime.datetime,
-                                   event: RecurringEvent) -> list[RenderEvent]:
+    def get_render_list_from_recurring(
+            max_count: int,
+            max_time: datetime.datetime,
+            event: RecurringEvent
+            ) -> list[RenderEvent]:
         print("test")

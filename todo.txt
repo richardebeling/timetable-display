@@ -1,2 +1,0 @@
-file "dt_renderer.py":
-    class TableRenderer - Create window, render Events
