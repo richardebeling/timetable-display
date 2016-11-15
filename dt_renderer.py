@@ -24,24 +24,21 @@ class TableRenderer(threading.Thread):
         self._foot_label = tkinter.Label(self._tk,
                                          textvariable=self._foot_label_text)
 
-    def _delete_window_callback(self):
+    def _delete_window_callback(self) -> None:
         self._tk.quit()
 
-    def _events_changed_callback(self):
-        self._handle_new_events()
-
-    def _sort_events(self):
+    def _sort_events(self) -> None:
         self.event_lock.acquire()
         self.events = sorted(self.events, key='time')
         self.event_lock.release()
 
-    def _clean_events(self):
+    def _clean_events(self) -> None:
         now = datetime.datetime.now()
         for event in self.events:
             if event.time < now:
                 self.events.remove(event)
 
-    def _handle_new_events(self):
+    def _handle_new_events(self) -> None:
         for label in self._today_labels:
             label.destroy()
         for label in self._tomorrow_labels:
@@ -52,9 +49,12 @@ class TableRenderer(threading.Thread):
 
         self._fill_window()
 
-        #  todo
-        #  Set timer to change the rendering when the time of the next event is
-        #  reached.
+        # todo
+        # Set timer self._tk.after(msecs, fn) to change the rendering when the
+        # time of the next event is reached.
+
+    def events_changed(self) -> None:
+        self._tk.after(0, self._handle_new_events)
 
     def set_header_text(self, s: str) -> None:
         self._head_label_text.set(s)
@@ -62,11 +62,11 @@ class TableRenderer(threading.Thread):
     def set_footer_text(self, s: str) -> None:
         self._foot_label_text.set(s)
 
-    def mainloop(self):
+    def mainloop(self) -> None:
         self._handle_new_events()
         self._tk.mainloop()
 
-    def _fill_window(self):
+    def _fill_window(self) -> None:
         today_events = []
         today_limit = datetime.datetime.now()
         today_limit.replace(hour=23, minute=59, second=59)
