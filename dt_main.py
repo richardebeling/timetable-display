@@ -1,15 +1,16 @@
 #!/usr/bin/python3
 
 from dt_config import ConfigReader, ConfigCleaner
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler, FileModifiedEvent
 import dt_settings
 from dt_renderer import TableRenderer
 
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler, FileModifiedEvent
 import traceback
-from threading import Event
+import threading
 from os import path
 import datetime
+import time
 from shutil import copyfile
 
 
@@ -34,7 +35,7 @@ class DementiaTimetable():
         if not path.isfile(self._config_path):
             raise Exception("Wrong config file given: " + dt_settings.filename)
 
-        self._config_change_event = Event()
+        self._config_change_event = threading.Event()
         self._config_change_event.set()  # trigger loading the config file
 
         # Trigger the event if the config file is changed
@@ -52,8 +53,10 @@ class DementiaTimetable():
         self._cleaned_date = datetime.date.today()
 
         self._renderer = TableRenderer()
-        self._renderer.run()
-        # todo: Renderer befüllen
+        # renderer will be filled when config is reloaded
+
+        self._update_thread = threading.Thread(target=self.update_loop)
+        self._stop_update_thread = threading.Event()
 
     def _log(self, s: str) -> None:
         print(datetime.datetime.now().strftime("[%d.%m %H:%M:%S] ") + s)
@@ -86,8 +89,20 @@ class DementiaTimetable():
         self._renderer.events = events
         self._renderer.event_lock.release()
 
-    def loop(self) -> None:
-        while(True):
+    def mainloop(self) -> None:
+        self._update_thread.start()
+        self._renderer.mainloop()
+
+        self._observer.stop()
+        self._stop_update_thread.set()
+
+        self._log("Waiting for the file monitor thread to finish...")
+        self._observer.join()
+        self._log("Waiting for the update thread to finish...")
+        self._update_thread.join()
+
+    def update_loop(self) -> None:
+        while not self._stop_update_thread.isSet():
             if self._config_change_event.isSet():
                 self._handle_config_change()
                 self._config_change_event.clear()
@@ -102,13 +117,9 @@ class DementiaTimetable():
                 #  config_change_event should be triggered automatically.
                 self._cleaned_date = datetime.date.today()
 
-            #  todo: Check for closed GUI
-            #  todo: sleep
-
-        self._log("Waiting for the file monitor thread to finish...")
-        self._observer.join()
+            time.sleep(0.1)
 
 
 if __name__ == "__main__":
     table = DementiaTimetable()
-    table.loop()
+    table.mainloop()

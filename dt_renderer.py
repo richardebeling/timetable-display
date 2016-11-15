@@ -8,7 +8,6 @@ import datetime
 class TableRenderer(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
-        # self.start()
 
         self.events = []  # RenderEvent
         self.event_lock = threading.Lock()
@@ -16,8 +15,10 @@ class TableRenderer(threading.Thread):
         self._today_labels = []  # tkinter.label
         self._tomorrow_labels = []  # tkinter.label
 
-        self._head_label = None
-        self._foot_label = None
+        self._tk = tkinter.Tk()
+
+        self._head_label_text = tkinter.StringVar(self._tk)
+        self._foot_label_text = tkinter.StringVar(self._tk)
 
     def _delete_window_callback(self):
         self._tk.quit()
@@ -52,13 +53,12 @@ class TableRenderer(threading.Thread):
         #  reached.
 
     def set_header_text(self, s: str) -> None:
-        self._head_label.config['text'] = s
+        self._head_label_text.set(s)
 
     def set_footer_text(self, s: str) -> None:
-        self.foot_label.config['text'] = s
+        self._foot_label_text.set(s)
 
-    def run(self):
-        self._tk = tkinter.Tk()
+    def mainloop(self):
         self._handle_new_events()
         self._tk.mainloop()
 
@@ -82,8 +82,10 @@ class TableRenderer(threading.Thread):
                 break
         self.event_lock.release()
 
-        self._head_label = tkinter.Label(self._tk, text="Header")
-        self._foot_label = tkinter.Label(self._tk, text="Footer")
+        self._head_label = tkinter.Label(self._tk,
+                                         textvariable=self._head_label_text)
+        self._foot_label = tkinter.Label(self._tk,
+                                         textvariable=self._foot_label_text)
 
         self._head_label.pack(fill=tkinter.X)
 
@@ -100,4 +102,3 @@ class TableRenderer(threading.Thread):
         self._foot_label.pack(fill=tkinter.X)
 
         # todo: Create labels for the next n events withing the next m days
-        print("nothing")

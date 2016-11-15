@@ -33,6 +33,7 @@ class RecurringEvent(Event):
     def get_recurring_times(self) -> list:
         return self._times
 
+    @staticmethod
     def _date_matches_recurring_time(d: datetime.date, t: RecurringTime):
         c_met = False
         if t.condition == RecurringEvent.CONDITION_NONE:
@@ -56,6 +57,8 @@ class RecurringEvent(Event):
                         times.append(date)
             date = date + datetime.timedelta(days=1)
 
+        return times
+
 
 class UniqueEvent(Event):
     def __init__(self):
@@ -70,8 +73,15 @@ class UniqueEvent(Event):
 
     def get_next_times(self, start: datetime.datetime,
                        end: datetime.datetime) -> List[datetime.datetime]:
-        # todo
-        print("test")
+        times = []
+        for time in self._times:
+            dt = datetime.datetime(day=time.day, month=time.month,
+                                   year=time.year, hour=time.hour,
+                                   minute=time.minute)
+            if dt > start and dt < end:
+                times.append(time)
+
+        return times
 
 
 class RenderEvent(Event):
