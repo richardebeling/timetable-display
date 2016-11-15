@@ -6,12 +6,16 @@ from dt_renderer import TableRenderer
 
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler, FileModifiedEvent
+
 import traceback
 import threading
-from os import path
 import datetime
-import time
+from os import path
+from time import sleep
 from shutil import copyfile
+
+# Hardcoded settings:
+UPDATE_THREAD_SLEEP_TIME = 0.5
 
 
 class ConfigChangeHandler(FileSystemEventHandler):
@@ -117,7 +121,7 @@ class DementiaTimetable():
                 #  config_change_event should be triggered automatically.
                 self._cleaned_date = datetime.date.today()
 
-            time.sleep(0.1)
+            sleep(UPDATE_THREAD_SLEEP_TIME)
 
 
 if __name__ == "__main__":

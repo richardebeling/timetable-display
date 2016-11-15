@@ -12,13 +12,17 @@ class TableRenderer(threading.Thread):
         self.events = []  # RenderEvent
         self.event_lock = threading.Lock()
 
-        self._today_labels = []  # tkinter.label
-        self._tomorrow_labels = []  # tkinter.label
+        self._today_labels = []  # tkinter.Label
+        self._tomorrow_labels = []  # tkinter.Label
 
         self._tk = tkinter.Tk()
 
         self._head_label_text = tkinter.StringVar(self._tk)
         self._foot_label_text = tkinter.StringVar(self._tk)
+        self._head_label = tkinter.Label(self._tk,
+                                         textvariable=self._head_label_text)
+        self._foot_label = tkinter.Label(self._tk,
+                                         textvariable=self._foot_label_text)
 
     def _delete_window_callback(self):
         self._tk.quit()
@@ -82,11 +86,8 @@ class TableRenderer(threading.Thread):
                 break
         self.event_lock.release()
 
-        self._head_label = tkinter.Label(self._tk,
-                                         textvariable=self._head_label_text)
-        self._foot_label = tkinter.Label(self._tk,
-                                         textvariable=self._foot_label_text)
-
+        self._head_label.pack_forget()
+        self._foot_label.pack_forget()
         self._head_label.pack(fill=tkinter.X)
 
         for event in today_events:
