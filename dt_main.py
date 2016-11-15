@@ -89,9 +89,9 @@ class DementiaTimetable():
         for unique_event in self._reader.unique:
             events = events + unique_event.get_next_times(t1, t2)
 
-        self._renderer.event_lock.acquire()
-        self._renderer.events = events
-        self._renderer.event_lock.release()
+        with self._renderer.event_lock:
+            self._renderer.events = events
+        self._renderer.events_changed()
 
     def mainloop(self) -> None:
         self._update_thread.start()

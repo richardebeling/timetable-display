@@ -28,15 +28,15 @@ class TableRenderer(threading.Thread):
         self._tk.quit()
 
     def _sort_events(self) -> None:
-        self.event_lock.acquire()
-        self.events = sorted(self.events, key='time')
-        self.event_lock.release()
+        with self.event_lock:
+            self.events = sorted(self.events, key='time')
 
     def _clean_events(self) -> None:
-        now = datetime.datetime.now()
-        for event in self.events:
-            if event.time < now:
-                self.events.remove(event)
+        with self.event_lock:
+            now = datetime.datetime.now()
+            for event in self.events:
+                if event.time < now:
+                    self.events.remove(event)
 
     def _handle_new_events(self) -> None:
         for label in self._today_labels:
@@ -49,9 +49,19 @@ class TableRenderer(threading.Thread):
 
         self._fill_window()
 
-        # todo
-        # Set timer self._tk.after(msecs, fn) to change the rendering when the
-        # time of the next event is reached.
+        self._handle_new_events_timer()
+
+    def _handle_new_events_timer(self) -> None:
+        time = 10*1000
+        with self.event_lock:
+            # events should be sorted here, so the first event is the next one.
+            if len(self.events) == 0:
+                return
+        # todo: Find time difference from now when the screen needs to be up-
+        # dated (in msecs).
+
+        time = 1000 if time < 0 else time  # force at least 1 second pause
+        self._tk.after(time, self._handle_new_events)
 
     def events_changed(self) -> None:
         self._tk.after(0, self._handle_new_events)
@@ -74,17 +84,16 @@ class TableRenderer(threading.Thread):
         tomorrow_events = []
         tomorrow_limit = today_limit + datetime.timedelta(days=1)
 
-        self.event_lock.acquire()
-        for event in self.events:
-            if (event.time < today_limit
-                    and len(today_events) < self.count_today):
-                today_events.append(event)
-            elif (event.time < tomorrow_limit
-                  and len(tomorrow_events) < self.count_tomorrow):
-                tomorrow_events.append(event)
-            elif event.time > tomorrow_limit:
-                break
-        self.event_lock.release()
+        with self.event_lock:
+            for event in self.events:
+                if (event.time < today_limit
+                        and len(today_events) < self.count_today):
+                    today_events.append(event)
+                elif (event.time < tomorrow_limit
+                      and len(tomorrow_events) < self.count_tomorrow):
+                    tomorrow_events.append(event)
+                elif event.time > tomorrow_limit:
+                    break
 
         self._head_label.pack_forget()
         self._foot_label.pack_forget()
