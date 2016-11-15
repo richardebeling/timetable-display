@@ -4,6 +4,7 @@
 
 from collections import namedtuple
 import datetime
+from typing import List
 
 UniqueTime = namedtuple("UniqueTime", "day month year hour minute")
 RecurringTime = namedtuple("RecurringTime", "dow hour minute condition")
@@ -43,7 +44,7 @@ class RecurringEvent(Event):
         return (c_met and d.weekday() == t.dow)
 
     def get_next_times(self, start: datetime.datetime,
-                       end: datetime.datetime) -> list[datetime.datetime]:
+                       end: datetime.datetime) -> List[datetime.datetime]:
         date = start
         times = []
 
@@ -68,7 +69,7 @@ class UniqueEvent(Event):
         return self._times
 
     def get_next_times(self, start: datetime.datetime,
-                       end: datetime.datetime) -> list[datetime.datetime]:
+                       end: datetime.datetime) -> List[datetime.datetime]:
         # todo
         print("test")
 
@@ -77,6 +78,7 @@ class RenderEvent(Event):
     def __init__(self):
         Event.__init__(self)
         self.time = datetime.datetime.today()
+        self.description = ""
 
 
 class EventConverter():
@@ -85,7 +87,7 @@ class EventConverter():
             max_count: int,
             max_time: datetime.datetime,
             event: UniqueEvent
-            ) -> list[RenderEvent]:
+            ) -> List[RenderEvent]:
         print("test")
 
     @staticmethod
@@ -93,5 +95,5 @@ class EventConverter():
             max_count: int,
             max_time: datetime.datetime,
             event: RecurringEvent
-            ) -> list[RenderEvent]:
+            ) -> List[RenderEvent]:
         print("test")

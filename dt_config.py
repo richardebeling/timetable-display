@@ -16,7 +16,7 @@ class ConfigReader:
         self.unique = []
 
     def _parse_event_description(self, line: str, event: Event,
-                               section: str) -> None:
+                                 section: str) -> None:
         event.description = line
         if section == "recurring":
             self.recurring.append(event)
@@ -53,7 +53,7 @@ class ConfigReader:
                     dow = token
 
                 t = RecurringTime(int(dow), int(hour), int(minute), condition)
-                event.addRecurringTime(t)
+                event.add_recurring_time(t)
 
             elif token.lower() in Event.VALID_MODIFIERS:
                 event.modifiers.append(token.lower())
@@ -65,7 +65,7 @@ class ConfigReader:
         return event
 
     def _parse_unique_event_times(self, line: str,
-                               dateformat: str) -> UniqueEvent:
+                                  dateformat: str) -> UniqueEvent:
         event = UniqueEvent()
 
         tokens = line.split()
@@ -74,7 +74,7 @@ class ConfigReader:
             try:
                 d = datetime.strptime(token, dateformat)
                 t = UniqueTime(d.day, d.month, d.year, d.hour, d.minute)
-                event.addUniqueTime(t)
+                event.add_unique_time(t)
             except ValueError:
                 raise Exception("Error parsing: " + token)
 
@@ -188,8 +188,8 @@ class ConfigWriter():
         return line
 
     def _build_lines(self, general: dict,
-                    recurring: list,
-                    unique: list) -> list:
+                     recurring: list,
+                     unique: list) -> list:
         lines = []
         dateformat = general["uniquedateformat"]
 
