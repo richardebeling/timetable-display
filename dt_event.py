@@ -69,9 +69,10 @@ class RecurringEvent(Event):
         times = self.get_next_datetimes(start, end)
         events = []
         for time in times:
-            e = RenderEvent
+            e = RenderEvent()
             e.time = time
             e.description = self.description
+            events.append(e)
         return events
 
 
@@ -102,7 +103,8 @@ class UniqueEvent(Event):
         times = self.get_next_datetimes(start, end)
         events = []
         for time in times:
-            e = RenderEvent
+            e = RenderEvent()
             e.time = time
             e.description = self.description
+            events.append(e)
         return events

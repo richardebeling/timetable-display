@@ -85,7 +85,7 @@ class DementiaTimetable():
         t1 = datetime.datetime.now()
         t2 = t1 + datetime.timedelta(days=3)
         for recurring_event in self._reader.recurring:
-            events = recurring_event.get_next_renderevents(t1, t2)
+            events = events + recurring_event.get_next_renderevents(t1, t2)
         for unique_event in self._reader.unique:
             events = events + unique_event.get_next_renderevents(t1, t2)
 

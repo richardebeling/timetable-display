@@ -5,9 +5,10 @@ import threading
 import datetime
 
 
-class TableRenderer(threading.Thread):
+class TableRenderer():
     def __init__(self):
-        threading.Thread.__init__(self)
+        self.count_today = 5
+        self.count_tomorrow = 2
 
         self.events = []  # RenderEvent from dt_event.py
         self.event_lock = threading.Lock()
@@ -57,10 +58,11 @@ class TableRenderer(threading.Thread):
             # events should be sorted here, so the first event is the next one.
             if len(self.events) == 0:
                 return
-            time = 1000 * (self.events[0] - datetime.datetime.now()) + 1
+            delta = self.events[0].time - datetime.datetime.now()
+            time = 1000 * delta.total_seconds() + 1
 
         time = 1000 if time < 0 else time  # force at least 1 second pause
-        self._tk.after(time, self._handle_new_events)
+        self._tk.after(int(time), self._handle_new_events)
 
     def events_changed(self) -> None:
         self._tk.after(0, self._handle_new_events)
@@ -104,12 +106,12 @@ class TableRenderer(threading.Thread):
         self._head_label.pack(fill=tkinter.X)
 
         for event in today_events:
-            label = tkinter.label(self._tk, text=event.description)
+            label = tkinter.Label(self._tk, text=event.description)
             label.pack(fill=tkinter.X)
             self._today_labels.append(label)
 
         for event in tomorrow_events:
-            label = tkinter.label(self._tk, text=event.description)
+            label = tkinter.Label(self._tk, text=event.description)
             label.pack(fill=tkinter.X)
             self._tomorrow_labels.append(label)
 
