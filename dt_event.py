@@ -44,8 +44,9 @@ class RecurringEvent(Event):
             c_met = (d.isocalendar()[1] % 2 == 0)
         return (c_met and d.weekday() == t.dow)
 
-    def get_next_times(self, start: datetime.datetime,
-                       end: datetime.datetime) -> List[datetime.datetime]:
+    def get_next_renderevents(
+            self, start: datetime.datetime,
+            end: datetime.datetime) -> List[datetime.datetime]:
         date = start
         times = []
 
@@ -57,7 +58,13 @@ class RecurringEvent(Event):
                         times.append(date)
             date = date + datetime.timedelta(days=1)
 
-        return times
+        events = []
+        for time in times:
+            e = RenderEvent
+            e.time = time
+            e.description = self.description
+
+        return events
 
 
 class UniqueEvent(Event):
@@ -71,17 +78,24 @@ class UniqueEvent(Event):
     def get_unique_times(self) -> list:
         return self._times
 
-    def get_next_times(self, start: datetime.datetime,
-                       end: datetime.datetime) -> List[datetime.datetime]:
+    def get_next_renderevents(
+            self, start: datetime.datetime,
+            end: datetime.datetime) -> List[datetime.datetime]:
         times = []
         for time in self._times:
             dt = datetime.datetime(day=time.day, month=time.month,
                                    year=time.year, hour=time.hour,
                                    minute=time.minute)
             if dt > start and dt < end:
-                times.append(time)
+                times.append(dt)
 
-        return times
+        events = []
+        for time in times:
+            e = RenderEvent
+            e.time = time
+            e.description = self.description
+
+        return events
 
 
 class RenderEvent(Event):

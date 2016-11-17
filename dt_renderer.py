@@ -9,7 +9,7 @@ class TableRenderer(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
 
-        self.events = []  # RenderEvent
+        self.events = []  # RenderEvent from dt_event.py
         self.event_lock = threading.Lock()
 
         self._today_labels = []  # tkinter.Label
@@ -29,7 +29,7 @@ class TableRenderer(threading.Thread):
 
     def _sort_events(self) -> None:
         with self.event_lock:
-            self.events = sorted(self.events, key='time')
+            self.events = sorted(self.events, key=lambda event: event.time)
 
     def _clean_events(self) -> None:
         with self.event_lock:
@@ -57,8 +57,7 @@ class TableRenderer(threading.Thread):
             # events should be sorted here, so the first event is the next one.
             if len(self.events) == 0:
                 return
-        # todo: Find time difference from now when the screen needs to be up-
-        # dated (in msecs).
+            time = 1000 * (self.events[0] - datetime.datetime.now()) + 1
 
         time = 1000 if time < 0 else time  # force at least 1 second pause
         self._tk.after(time, self._handle_new_events)
