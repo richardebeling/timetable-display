@@ -49,9 +49,9 @@ class TableRenderer(threading.Thread):
 
         self._fill_window()
 
-        self._handle_new_events_timer()
+        self._handle_new_events_set_timer()
 
-    def _handle_new_events_timer(self) -> None:
+    def _handle_new_events_set_timer(self) -> None:
         time = 10*1000
         with self.event_lock:
             # events should be sorted here, so the first event is the next one.
@@ -96,6 +96,11 @@ class TableRenderer(threading.Thread):
 
         self._head_label.pack_forget()
         self._foot_label.pack_forget()
+        for label in self._today_labels:
+            label.destroy()
+        for label in self._tomorrow_labels:
+            label.destroy()
+
         self._head_label.pack(fill=tkinter.X)
 
         for event in today_events:
@@ -109,5 +114,3 @@ class TableRenderer(threading.Thread):
             self._tomorrow_labels.append(label)
 
         self._foot_label.pack(fill=tkinter.X)
-
-        # todo: Create labels for the next n events withing the next m days
