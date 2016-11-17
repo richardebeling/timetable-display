@@ -106,21 +106,3 @@ class UniqueEvent(Event):
             e.time = time
             e.description = self.description
         return events
-
-
-class EventConverter():
-    @staticmethod
-    def get_render_list_from_unique(
-            max_count: int,
-            max_time: datetime.datetime,
-            event: UniqueEvent
-            ) -> List[RenderEvent]:
-        print("test")
-
-    @staticmethod
-    def get_render_list_from_recurring(
-            max_count: int,
-            max_time: datetime.datetime,
-            event: RecurringEvent
-            ) -> List[RenderEvent]:
-        print("test")
