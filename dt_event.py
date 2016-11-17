@@ -18,6 +18,13 @@ class Event:
         self.modifiers = []
 
 
+class RenderEvent(Event):
+    def __init__(self):
+        Event.__init__(self)
+        self.time = datetime.datetime.today()
+        self.description = ""
+
+
 class RecurringEvent(Event):
     CONDITION_NONE = 0
     CONDITION_EVEN = 1
@@ -44,12 +51,10 @@ class RecurringEvent(Event):
             c_met = (d.isocalendar()[1] % 2 == 0)
         return (c_met and d.weekday() == t.dow)
 
-    def get_next_renderevents(
-            self, start: datetime.datetime,
-            end: datetime.datetime) -> List[datetime.datetime]:
+    def get_next_datetimes(self, start: datetime.datetime,
+                           end: datetime.datetime) -> List[datetime.datetime]:
         date = start
         times = []
-
         while date < end:
             for time in self._times:
                 if self._date_matches_recurring_time(date, time):
@@ -57,13 +62,16 @@ class RecurringEvent(Event):
                     if date > start and date < end:
                         times.append(date)
             date = date + datetime.timedelta(days=1)
+        return times
 
+    def get_next_renderevents(self, start: datetime.datetime,
+                              end: datetime.datetime) -> List[RenderEvent]:
+        times = self.get_next_datetimes(start, end)
         events = []
         for time in times:
             e = RenderEvent
             e.time = time
             e.description = self.description
-
         return events
 
 
@@ -78,9 +86,8 @@ class UniqueEvent(Event):
     def get_unique_times(self) -> list:
         return self._times
 
-    def get_next_renderevents(
-            self, start: datetime.datetime,
-            end: datetime.datetime) -> List[datetime.datetime]:
+    def get_next_datetimes(self, start: datetime.datetime,
+                           end: datetime.datetime) -> List[datetime.datetime]:
         times = []
         for time in self._times:
             dt = datetime.datetime(day=time.day, month=time.month,
@@ -88,21 +95,17 @@ class UniqueEvent(Event):
                                    minute=time.minute)
             if dt > start and dt < end:
                 times.append(dt)
+        return times
 
+    def get_next_renderevents(self, start: datetime.datetime,
+                              end: datetime.datetime) -> List[RenderEvent]:
+        times = self.get_next_datetimes(start, end)
         events = []
         for time in times:
             e = RenderEvent
             e.time = time
             e.description = self.description
-
         return events
-
-
-class RenderEvent(Event):
-    def __init__(self):
-        Event.__init__(self)
-        self.time = datetime.datetime.today()
-        self.description = ""
 
 
 class EventConverter():
