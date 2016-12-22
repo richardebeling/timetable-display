@@ -14,9 +14,6 @@ from os import path
 from time import sleep
 from shutil import copyfile
 
-# Hardcoded settings:
-UPDATE_THREAD_SLEEP_TIME = 0.5
-
 
 class ConfigChangeHandler(FileSystemEventHandler):
     def __init__(self, filename, event_to_set):
@@ -65,6 +62,35 @@ class DementiaTimetable():
     def _log(self, s: str) -> None:
         print(datetime.datetime.now().strftime("[%d.%m %H:%M:%S] ") + s)
 
+    def _apply_general_section(self) -> None:
+        renderer = self._renderer
+        general = self._reader.general
+
+        if 'head' in general:
+            renderer.texts['foot'] = general['foot']
+        if 'foot' in general:
+            renderer.texts['foot'] = general['foot']
+        if 'tomorrow' in general:
+            renderer.texts['tomorrow'] = general['tomorrow']
+        if 'today' in general:
+            renderer.texts['today'] = general['today']
+
+        if 'todaycount' in general:
+            renderer.count_today = int(general['todaycount'])
+        if 'tomorrowcount' in general:
+            renderer.count_tomorrow = int(general['tomorrowcount'])
+
+        if 'font' in general:
+            renderer.font['name'] = general['font']
+        if 'fontsize' in general:
+            renderer.font['size'] = int(general['fontsize'])
+        if 'fontbold' in general:
+            renderer.font['bold'] = int(general['fontbold'])
+        if 'fontitalics' in general:
+            renderer.font['italics'] = bool(int(general['fontitalics']))
+        if 'fontunderlined' in general:
+            renderer.font['underlined'] = bool(int(general['fontunderlined']))
+
     def _handle_config_change(self) -> None:
         new = ConfigReader()
         self._log("Config change detected. Reparsing...")
@@ -76,10 +102,7 @@ class DementiaTimetable():
             return
         self._reader.parse(self._config_path)
 
-        if 'Head' in self._reader.general:
-            self._renderer.set_header_text(self._reader.general['Head'])
-        if 'Foot' in self._reader.general:
-            self._renderer.set_footer_text(self._reader.general['Foot'])
+        self._apply_general_section()
 
         events = []
         t1 = datetime.datetime.now()
@@ -121,7 +144,7 @@ class DementiaTimetable():
                 #  config_change_event should be triggered automatically.
                 self._cleaned_date = datetime.date.today()
 
-            sleep(UPDATE_THREAD_SLEEP_TIME)
+            sleep(dt_settings.updatethread_sleeptime_s)
 
 
 if __name__ == "__main__":

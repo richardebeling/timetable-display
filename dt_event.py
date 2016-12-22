@@ -11,7 +11,7 @@ RecurringTime = namedtuple("RecurringTime", "dow hour minute condition")
 
 
 class Event:
-    VALID_MODIFIERS = ["notime"]
+    VALID_MODIFIERS = ["notime", "until"]
 
     def __init__(self):
         self.description = ""
@@ -21,8 +21,11 @@ class Event:
 class RenderEvent(Event):
     def __init__(self):
         Event.__init__(self)
-        self.time = datetime.datetime.today()
+        self.time = datetime.datetime.now()
         self.description = ""
+
+    def timestring(self) -> str:
+        return "{dt.hour}:{dt.minute:02}".format(dt=self.time)
 
 
 class RecurringEvent(Event):

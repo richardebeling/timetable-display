@@ -4,26 +4,41 @@ import tkinter
 import threading
 import datetime
 
+# todo: fullscreen modus
+# todo: hilight current event - changed colors + arrow
+# todo: Padding events
+# todo: Vordergrundfarbe, Hintergrundfarbe (normal + hilighted)
+# - weiß auf schwarz normal, pink auf grau hilighted
+# todo: Trennlinien - waagerecht
+# todo: Hervorheben: Setzbares Interval
+# todo: Ton bei Wechsel - Lautstärke anpassen nach Umgebungslautstärke
+# todo: Farben anpassen nach Umgebungslicht?
+# todo: Pfeilspalte + Bisspalte, Uhrzeitspalte, Textspalte
+
 
 class TableRenderer():
+    _col_arrow = 0
+    _col_time = 1
+    _col_text = 2
+
     def __init__(self):
         self.count_today = 5
         self.count_tomorrow = 2
 
+        self.font = {'name': "Arial", 'size': 30, 'bold': False,
+                     'italics': False, 'underlined': False}
+
+        self.texts = {'head': "", 'foot': "", 'tomorrow': "$date$",
+                      'today': "$date$"}
+
         self.events = []  # RenderEvent from dt_event.py
         self.event_lock = threading.Lock()
 
-        self._today_labels = []  # tkinter.Label
-        self._tomorrow_labels = []  # tkinter.Label
+        self._labels = []
+        # List of lists: [3 x None or tkinter.Label], arrow, time and text
 
         self._tk = tkinter.Tk()
-
-        self._head_label_text = tkinter.StringVar(self._tk)
-        self._foot_label_text = tkinter.StringVar(self._tk)
-        self._head_label = tkinter.Label(self._tk,
-                                         textvariable=self._head_label_text)
-        self._foot_label = tkinter.Label(self._tk,
-                                         textvariable=self._foot_label_text)
+        self._tk.wm_title("Dementia Timetable")
 
     def _delete_window_callback(self) -> None:
         self._tk.quit()
@@ -40,11 +55,6 @@ class TableRenderer():
                     self.events.remove(event)
 
     def _handle_new_events(self) -> None:
-        for label in self._today_labels:
-            label.destroy()
-        for label in self._tomorrow_labels:
-            label.destroy()
-
         self._sort_events()
         self._clean_events()
 
@@ -67,11 +77,41 @@ class TableRenderer():
     def events_changed(self) -> None:
         self._tk.after(0, self._handle_new_events)
 
-    def set_header_text(self, s: str) -> None:
-        self._head_label_text.set(s)
+    def _prepare_today_text(self) -> str:
+        # todo: replace "$date$" with current date
+        return self.texts['today']
 
-    def set_footer_text(self, s: str) -> None:
-        self._foot_label_text.set(s)
+    def _prepare_tomorrow_text(self) -> str:
+        # todo: replace "$date$" with date of tomorrow
+        return self.texts['tomorrow']
+
+    def _create_head_line(self, text, row) -> None:
+        label = tkinter.Label(self._tk, text=text)
+        label.grid(columnspan=2, column=self._col_time, row=row)
+        self._labels.append([None, label, None])
+
+    def _create_event_line(self, event, row) -> None:
+        # todo: Formatierung: Schriftgöße, Farbe
+        ls = []
+        if "until" in event.modifiers:
+            label_until = tkinter.Label(self._tk, text=self._until_text)
+            label_until.grid(column=self._col_arrow, row=row, sticky="E")
+            ls.append(label_until)
+        else:
+            ls.append(None)
+
+        if "notime" not in event.modifiers:
+            label_time = tkinter.Label(self._tk, text=event.timestring())
+            label_time.grid(column=self._col_time, row=row, sticky="E")
+            ls.append(label_time)
+        else:
+            ls.append(None)
+
+        label_text = tkinter.Label(self._tk, text=event.description)
+        label_text.grid(column=self._col_text, row=row, sticky="W")
+        ls.append(label_text)
+
+        self._labels.append(ls)
 
     def mainloop(self) -> None:
         self._handle_new_events()
@@ -96,23 +136,34 @@ class TableRenderer():
                 elif event.time > tomorrow_limit:
                     break
 
-        self._head_label.pack_forget()
-        self._foot_label.pack_forget()
-        for label in self._today_labels:
-            label.destroy()
-        for label in self._tomorrow_labels:
-            label.destroy()
+        for line in self._labels:
+            for element in line:
+                if element is not None:
+                    element.grid_forget()
+                    element.destroy()
 
-        self._head_label.pack(fill=tkinter.X)
+        row = 0
+
+        if len(self.texts['head']) != 0:
+            self._create_head_line(self.texts['head'], row)
+            row = row + 1
+
+        if len(self.texts['today']) != 0:
+            self._create_head_line(self._prepare_today_text(), row)
+            row = row + 1
 
         for event in today_events:
-            label = tkinter.Label(self._tk, text=event.description)
-            label.pack(fill=tkinter.X)
-            self._today_labels.append(label)
+            self._create_event_line(event, row)
+            row = row + 1
+
+        if len(self.texts['tomorrow']) != 0:
+            self._create_head_line(self._prepare_tomorrow_text(), row)
+            row = row + 1
 
         for event in tomorrow_events:
-            label = tkinter.Label(self._tk, text=event.description)
-            label.pack(fill=tkinter.X)
-            self._tomorrow_labels.append(label)
+            self._create_event_line(event, row)
+            row = row + 1
 
-        self._foot_label.pack(fill=tkinter.X)
+        if len(self.texts['foot']) != 0:
+            self._create_head_line(self.texts['foot'], row)
+            row = row + 1

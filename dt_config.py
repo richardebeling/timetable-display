@@ -100,7 +100,7 @@ class ConfigReader:
 
                 elif section == "general":
                     splits = line.split('=', 1)
-                    self.general[splits[0].strip()] = splits[1].strip()
+                    self.general[splits[0].strip().lower()] = splits[1].strip()
 
                 elif section == "recurring":
                     currentEvent = self._parse_recurring_event_times(line)
