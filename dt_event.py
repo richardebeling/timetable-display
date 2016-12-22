@@ -75,6 +75,7 @@ class RecurringEvent(Event):
             e = RenderEvent()
             e.time = time
             e.description = self.description
+            e.modifiers = self.modifiers
             events.append(e)
         return events
 
@@ -109,5 +110,6 @@ class UniqueEvent(Event):
             e = RenderEvent()
             e.time = time
             e.description = self.description
+            e.modifiers = self.modifiers
             events.append(e)
         return events

@@ -29,7 +29,7 @@ class TableRenderer():
                      'italics': False, 'underlined': False}
 
         self.texts = {'head': "", 'foot': "", 'tomorrow': "$date$",
-                      'today': "$date$"}
+                      'today': "$date$", 'until': "until"}
 
         self.events = []  # RenderEvent from dt_event.py
         self.event_lock = threading.Lock()
@@ -94,7 +94,7 @@ class TableRenderer():
         # todo: Formatierung: Schriftgöße, Farbe
         ls = []
         if "until" in event.modifiers:
-            label_until = tkinter.Label(self._tk, text=self._until_text)
+            label_until = tkinter.Label(self._tk, text=self.texts['untiltext'])
             label_until.grid(column=self._col_arrow, row=row, sticky="E")
             ls.append(label_until)
         else:
