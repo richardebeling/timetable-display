@@ -67,7 +67,7 @@ class DementiaTimetable():
         general = self._reader.general
 
         if 'head' in general:
-            renderer.texts['foot'] = general['foot']
+            renderer.texts['head'] = general['head']
         if 'foot' in general:
             renderer.texts['foot'] = general['foot']
         if 'tomorrow' in general:
