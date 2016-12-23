@@ -94,6 +94,15 @@ class DementiaTimetable():
         if 'fontunderlined' in general:
             renderer.font['underlined'] = bool(int(general['fontunderlined']))
 
+        if 'bg' in general:
+            renderer.colors['bg'] = general['bg']
+        if 'fg' in general:
+            renderer.colors['fg'] = general['fg']
+        if 'hbg' in general:
+            renderer.colors['hbg'] = general['hbg']
+        if 'hfg' in general:
+            renderer.colors['hfg'] = general['hfg']
+
     def _handle_config_change(self) -> None:
         new = ConfigReader()
         self._log("Config change detected. Reparsing...")
