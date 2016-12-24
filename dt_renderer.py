@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+from typing import List
 from dt_event import RenderEvent
 import tkinter
 import threading
@@ -26,6 +27,8 @@ class TableRenderer():
 
         self.font = {'name': "Arial", 'size': 30, 'bold': False,
                      'italics': False, 'underlined': False, 'paddingsize': 30}
+        self._font_string = "Arial 30"
+
         self.texts = {'head': "", 'foot': "", 'tomorrow': "$date$",
                       'today': "$date$", 'until': "until"}
         self.colors = {'fg': "black", 'bg': "white", 'hfg': "yellow",
@@ -72,8 +75,12 @@ class TableRenderer():
         self._sort_events()
         self._remove_past_events()
 
-        # todo: split _fill_window.
-        hilight_event = self._fill_window()
+        today_events, tomorrow_events = self._get_events_to_render()
+        hilight_event = self._find_event_to_hilight(today_events)
+        self._tk.configure(bg=self.colors['bg'])
+
+        self._clear_window()
+        self._fill_window(today_events, tomorrow_events, hilight_event)
 
         if hilight_event is None:
             t = datetime.datetime.today().replace(hour=0, minute=0, second=0)
@@ -101,7 +108,7 @@ class TableRenderer():
         datestr = "{d.day}. {d:%B} {d.year}".format(d=date)
         return self.texts['tomorrow'].replace("$date$", datestr)
 
-    def _build_temp_font_string(self) -> None:
+    def _build_font_string(self) -> None:
         result = self.font['name'] + " " + str(self.font['size'])
         if self.font['bold'] is not False:
             result += " bold"
@@ -109,16 +116,16 @@ class TableRenderer():
             result += " italic"
         if self.font['underlined'] is not False:
             result += " underlined"
-        self._temp_font_string = result
+        self._font_string = result
 
     def _get_normal_label(self, text) -> tkinter.Label:
         label = tkinter.Label(self._tk, text=text)
         label.config(bg=self.colors['bg'], fg=self.colors['fg'])
-        label.config(font=self._temp_font_string)
+        label.config(font=self._font_string)
         return label
 
     def _get_padding_label(self) -> tkinter.Label:
-        pad_font = self._temp_font_string.replace(
+        pad_font = self._font_string.replace(
             str(self.font['size']), str(self.font['paddingsize']))
         label = tkinter.Label(self._tk, text="A")
         label.config(bg=self.colors['bg'], fg=self.colors['bg'])
@@ -128,52 +135,32 @@ class TableRenderer():
     def _get_past_label(self, text) -> tkinter.Label:
         label = tkinter.Label(self._tk, text=text)
         label.config(bg=self.colors['pbg'], fg=self.colors['pfg'])
-        label.config(font=self._temp_font_string)
+        label.config(font=self._font_string)
         return label
 
     def _get_hilight_label(self, text) -> tkinter.Label:
         label = tkinter.Label(self._tk, text=text)
         label.config(bg=self.colors['hbg'], fg=self.colors['hfg'])
-        label.config(font=self._temp_font_string)
+        label.config(font=self._font_string)
         return label
 
     def _create_head_line(self, text: str, row: int) -> None:
         label = self._get_normal_label(text)
         label.configure(anchor=tkinter.W)
-        label.grid(columnspan=2, column=self._col_time, row=row,
+        label.grid(columnspan=3, column=self._col_arrow, row=row,
                    sticky="NSWE")
         self._labels.append([None, label, None])
 
-    # todo: refactor to remove redundancy
     def _create_normal_event_line(self, event: RenderEvent, row: int) -> None:
-        ls = []
-        if "until" in event.modifiers:
-            label_until = self._get_normal_label(self.texts['untiltext'] + " ")
-            label_until.configure(anchor=tkinter.E)
-            label_until.grid(column=self._col_arrow, row=row, sticky="NSWE")
-            ls.append(label_until)
-        else:
-            ls.append(None)
-
-        if "notime" not in event.modifiers:
-            label_time = self._get_normal_label(event.timestring() + " ")
-            label_time.configure(anchor=tkinter.E)
-            label_time.grid(column=self._col_time, row=row, sticky="NSWE")
-            ls.append(label_time)
-        else:
-            ls.append(None)
-
-        label_text = self._get_normal_label(event.description)
-        label_text.configure(anchor=tkinter.W)
-        label_text.grid(column=self._col_text, row=row, sticky="NSWE")
-        ls.append(label_text)
-
-        self._labels.append(ls)
+        return self._create_event_line(event, row, self._get_normal_label)
 
     def _create_past_event_line(self, event: RenderEvent, row: int) -> None:
+        return self._create_event_line(event, row, self._get_past_label)
+
+    def _create_event_line(self, event: RenderEvent, row: int, func) -> None:
         ls = []
         if "until" in event.modifiers:
-            label_until = self._get_past_label(self.texts['untiltext'] + " ")
+            label_until = func(self.texts['untiltext'] + " ")
             label_until.configure(anchor=tkinter.E)
             label_until.grid(column=self._col_arrow, row=row, sticky="NSWE")
             ls.append(label_until)
@@ -181,14 +168,14 @@ class TableRenderer():
             ls.append(None)
 
         if "notime" not in event.modifiers:
-            label_time = self._get_past_label(event.timestring() + " ")
+            label_time = func(event.timestring() + " ")
             label_time.configure(anchor=tkinter.E)
             label_time.grid(column=self._col_time, row=row, sticky="NSWE")
             ls.append(label_time)
         else:
             ls.append(None)
 
-        label_text = self._get_past_label(event.description)
+        label_text = func(event.description)
         label_text.configure(anchor=tkinter.W)
         label_text.grid(column=self._col_text, row=row, sticky="NSWE")
         ls.append(label_text)
@@ -237,8 +224,7 @@ class TableRenderer():
         label.grid(column=self._col_text, row=row, sticky="NSWE")
         self._labels.append([None, None, label])
 
-    def _fill_window(self) -> RenderEvent:
-        # create list of events to render
+    def _get_events_to_render(self) -> List[RenderEvent]:
         today_events = []
         today_limit = datetime.datetime.now()
         today_limit = today_limit.replace(hour=23, minute=59, second=59)
@@ -259,17 +245,20 @@ class TableRenderer():
                 elif event.time > tomorrow_limit:
                     break
 
-        # find event to hilight:
+        return today_events, tomorrow_events
+
+    def _find_event_to_hilight(self, events: List[RenderEvent]) -> RenderEvent:
         hilight_event = None
         limit = datetime.datetime.now()
         limit = limit - datetime.timedelta(minutes=self.hilight_after)
-        for event in today_events:
+        for event in events:
             if (limit < event.time
                     and hilight_event is None
                     and "padding" not in event.modifiers):
                 hilight_event = event
+        return hilight_event
 
-        # clear window
+    def _clear_window(self) -> None:
         for line in self._labels:
             for element in line:
                 if element is not None:
@@ -277,11 +266,13 @@ class TableRenderer():
                     element.destroy()
         self._labels = []
 
-        # fill window
-        self._build_temp_font_string()
-        self._tk.configure(bg=self.colors['bg'])
-        event_drawn = False
+    def _fill_window(self,
+                     today_events: List[RenderEvent],
+                     tomorrow_events: List[RenderEvent],
+                     hilight_event: RenderEvent) -> None:
 
+        self._build_font_string()
+        event_drawn = False
         row = 0
 
         if len(self.texts['head']) != 0:
