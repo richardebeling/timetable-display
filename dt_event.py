@@ -11,7 +11,7 @@ RecurringTime = namedtuple("RecurringTime", "dow hour minute condition")
 
 
 class Event:
-    VALID_MODIFIERS = ["notime", "until"]
+    VALID_MODIFIERS = ["notime", "until", "tomorrow", "padding"]
 
     def __init__(self):
         self.description = ""

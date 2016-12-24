@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+from freezegun import freeze_time
+
 from dt_config import ConfigReader, ConfigCleaner
 import dt_settings
 from dt_renderer import TableRenderer
@@ -93,6 +95,8 @@ class DementiaTimetable():
             renderer.font['italics'] = bool(int(general['fontitalics']))
         if 'fontunderlined' in general:
             renderer.font['underlined'] = bool(int(general['fontunderlined']))
+        if 'paddingsize' in general:
+            renderer.font['paddingsize'] = int(general['paddingsize'])
 
         if 'bg' in general:
             renderer.colors['bg'] = general['bg']
@@ -102,6 +106,13 @@ class DementiaTimetable():
             renderer.colors['hbg'] = general['hbg']
         if 'hfg' in general:
             renderer.colors['hfg'] = general['hfg']
+        if 'pbg' in general:
+            renderer.colors['pbg'] = general['pbg']
+        if 'pfg' in general:
+            renderer.colors['pfg'] = general['pfg']
+
+        if 'arrow' in general:
+            renderer.load_arrow_image(general['arrow'])
 
     def _handle_config_change(self) -> None:
         new = ConfigReader()
@@ -117,7 +128,7 @@ class DementiaTimetable():
         self._apply_general_section()
 
         events = []
-        t1 = datetime.datetime.now()
+        t1 = datetime.datetime.now().replace(hour=0, minute=0, second=0)
         t2 = t1 + datetime.timedelta(days=3)
         for recurring_event in self._reader.recurring:
             events = events + recurring_event.get_next_renderevents(t1, t2)
@@ -128,15 +139,18 @@ class DementiaTimetable():
             self._renderer.events = events
         self._renderer.events_changed()
 
+    @freeze_time("2016-12-22 09:30")
     def mainloop(self) -> None:
         self._update_thread.start()
         self._renderer.mainloop()
 
-        self._observer.stop()
         self._stop_update_thread.set()
 
-        self._log("Waiting for the file monitor thread to finish...")
-        self._observer.join()
+        # todo: sometimes deadlock, not ending the thread shouldn't cause
+        # a problem though
+        # self._log("Waiting for the file monitor thread to finish...")
+        # self._observer.stop()
+        # self._observer.join()
         self._log("Waiting for the update thread to finish...")
         self._update_thread.join()
 
