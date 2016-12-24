@@ -3,8 +3,8 @@
 - WatchDog - `sudo pip3 install watchdog`
 
 ## Hotkeys
-- F - Fullscreen
-- Esc - Exit
+- F / F11 - Fullscreen
+- Esc / q - Exit
 
 ## Configuration
 - Configuration file path: specified in dt_settings.py. Default: `config.cfg`

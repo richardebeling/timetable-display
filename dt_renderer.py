@@ -44,6 +44,8 @@ class TableRenderer():
         self._tk.wm_title("Dementia Timetable")
         self._tk.focus_set()
         self._tk.bind('f', self._toggle_fullscreen)
+        self._tk.bind('q', lambda e: self._tk.quit())
+        self._tk.bind('<F11>', self._toggle_fullscreen)
         self._tk.bind('<Escape>', lambda e: self._tk.quit())
 
     def _delete_window_callback(self) -> None:
