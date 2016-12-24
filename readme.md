@@ -2,6 +2,9 @@
 ## Required Libraries:
 - WatchDog - `sudo pip3 install watchdog`
 
+## How to run?
+Just `./dt_main.py`
+
 ## Hotkeys
 - F / F11 - Fullscreen
 - Esc / q - Exit
