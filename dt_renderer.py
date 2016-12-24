@@ -6,7 +6,6 @@ import tkinter
 import threading
 import datetime
 
-# todo: Trennlinien - waagerecht
 # todo: Ton bei Wechsel - Lautstärke anpassen nach Umgebungslautstärke
 # todo: Farben anpassen nach Umgebungslicht?
 
@@ -17,13 +16,11 @@ class TableRenderer():
     _col_text = 2
 
     def __init__(self):
+        # todo: Lock for all these settings?
         self.count_today = 5
         self.count_tomorrow = 2
         self.hilight_after = 10                   # minutes
         self.keep_past_events_from_today = True
-
-        self._arrow = None                        # Tkinter.PhotoImage
-        self._fullscreen_state = False
 
         self.font = {'name': "Arial", 'size': 30, 'bold': False,
                      'italics': False, 'underlined': False, 'paddingsize': 30}
@@ -34,11 +31,14 @@ class TableRenderer():
         self.colors = {'fg': "black", 'bg': "white", 'hfg': "yellow",
                        'hbg': "blue", 'pbg': "black", 'pfg': "grey"}
 
-        self.events = []  # RenderEvent from dt_event.py
+        self.events = []                          # RenderEvent
         self.event_lock = threading.Lock()
 
         self._labels = []
         # List of lists: [3 x None or tkinter.Label], arrow, time and text
+
+        self._arrow = None                        # Tkinter.PhotoImage
+        self._fullscreen_state = False
 
         self._tk = tkinter.Tk()
         self._tk.wm_title("Dementia Timetable")
