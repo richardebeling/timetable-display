@@ -50,7 +50,7 @@ Each event consists of two lines.
 
 The first linie specifies the times when this event happens. It consists of the
 time of the day followed by the days where it happens. Possible day modifiers are
-`e`/`g` and `o/u` for even and odd weeks.
+`e`/`g` and `o`/`u` for even and odd weeks.
 
 Example: `8:00 e1 o2 10:00 o1 e2`
 
