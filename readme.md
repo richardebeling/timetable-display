@@ -10,10 +10,12 @@ Just `./dt_main.py`
 - Esc / q - Exit
 
 ## Configuration
-- Configuration file path: specified in dt_settings.py. Default: `config.cfg`
-- Update thread sleep time: specified in dt_settings.py.
+### dt_settings.py - Internal Settings
+- Configuration file path: `filepath`. Default: `config.cfg`
+- Configuration file encoding: `fileencoding`. Should be `utf-8` or `latin-1` or similar.
+- Update thread sleep time: `undatethread_sleeptime_s`
 
-### Configuration file
+### Configuration file - User Settings
 3 Sections, beginning at the markers (`[general]`, `[recurring]` or `[unique]`).
 
 #### General Section

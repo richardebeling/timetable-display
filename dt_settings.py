@@ -2,3 +2,4 @@
 
 filename = "config.cfg"
 updatethread_sleeptime_s = 0.5
+fileencoding = "utf-8"

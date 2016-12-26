@@ -80,8 +80,8 @@ class ConfigReader:
 
         return event
 
-    def parse(self, filename: str) -> None:
-        with open(filename) as f:
+    def parse(self, filename: str, encoding="utf-8") -> None:
+        with open(filename, "r", encoding=encoding) as f:
             section = "general"
             currentEvent = Event()
             expectingEventDescription = False

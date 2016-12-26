@@ -118,12 +118,12 @@ class DementiaTimetable():
         new = ConfigReader()
         self._log("Config change detected. Reparsing...")
         try:
-            new.parse(self._config_path)
+            new.parse(self._config_path, dt_settings.fileencoding)
         except Exception:
             self._log("!!! Error: Could not parse config file.")
             traceback.print_exc()
             return
-        self._reader.parse(self._config_path)
+        self._reader.parse(self._config_path, dt_settings.fileencoding)
 
         self._apply_general_section()
 
