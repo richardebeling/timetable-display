@@ -140,7 +140,7 @@ class DementiaTimetable():
         self._renderer.events_changed()
 
     # todo: Remove
-    @freeze_time("2016-12-22 09:30")
+    # @freeze_time("2016-12-22 09:30")
     def mainloop(self) -> None:
         self._update_thread.start()
         self._renderer.mainloop()

@@ -7,6 +7,7 @@ import threading
 import datetime
 
 # todo: Ton bei Wechsel - Lautstärke anpassen nach Umgebungslautstärke
+# todo: Videos bei Wechsel?
 # todo: Farben anpassen nach Umgebungslicht?
 
 
