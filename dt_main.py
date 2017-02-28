@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from freezegun import freeze_time
+# from freezegun import freeze_time
 
 from dt_config import ConfigReader, ConfigCleaner
 import dt_settings
@@ -89,6 +89,8 @@ class DementiaTimetable():
             renderer.count_today = int(general['todaycount'])
         if 'tomorrowcount' in general:
             renderer.count_tomorrow = int(general['tomorrowcount'])
+        if 'hilightafter' in general:
+            renderer.hilight_after = int(general['hilightafter'])
 
         if 'font' in general:
             renderer.font['name'] = general['font']
@@ -164,7 +166,7 @@ class DementiaTimetable():
             self._execution_manager.events = execution_events
             self._execution_manager.events_changed.set()
 
-    @freeze_time("2016-12-22 09:30")
+    # @freeze_time("2017-02-28 12:14:55", tick=True)
     def mainloop(self) -> None:
         self._update_thread.start()
         self._renderer.mainloop()

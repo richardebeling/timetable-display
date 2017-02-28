@@ -13,15 +13,8 @@ class ExecutionEvent:
     def appropriate(self) -> bool:
         return datetime.datetime.now() >= self.time
 
-    def execute_if_appropriate(self) -> bool:
-        if self.appropriate():
-            self._execute()
-            return True
-        else:
-            return False
-
-    def _execute(self) -> None:
-        subprocess.Popen(self.executable)
+    def execute(self) -> None:
+        subprocess.Popen(self.executable.split(' '))
 
 
 class ExecutionManager:
@@ -41,5 +34,10 @@ class ExecutionManager:
                 self._clean_and_sort_events()
                 self.events_changed.clear()
 
-            while self.events and self.events[0].execute_if_appropriate():
-                self.events.pop(0)
+            while self.events:
+                if not self.events[0].appropriate():
+                    break
+                try:
+                    self.events[0].execute()
+                finally:
+                    self.events.pop(0)
