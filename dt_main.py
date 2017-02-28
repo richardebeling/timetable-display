@@ -5,6 +5,7 @@ from freezegun import freeze_time
 from dt_config import ConfigReader, ConfigCleaner
 import dt_settings
 from dt_renderer import TableRenderer
+from dt_execute import ExecutionManager
 
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler, FileModifiedEvent
@@ -39,9 +40,11 @@ class DementiaTimetable():
             raise Exception("Wrong config file given: " + dt_settings.filename)
 
         self._config_change_event = threading.Event()
-        self._config_change_event.set()  # trigger loading the config file
+        self._config_change_event.set()      # trigger loading the config file
 
-        # Trigger the event if the config file is changed
+        self._renderer_preview_timespan = 5  # days
+        self._update_event = threading.Event()
+
         self._log("Starting file monitor thread...")
         handler = ConfigChangeHandler(
                 dt_settings.filename,
@@ -58,6 +61,8 @@ class DementiaTimetable():
         self._renderer = TableRenderer()
         # renderer will be filled when config is reloaded
 
+        self._execution_manager = ExecutionManager()
+
         self._update_thread = threading.Thread(target=self.update_loop)
         self._stop_update_thread = threading.Event()
 
@@ -66,7 +71,7 @@ class DementiaTimetable():
 
     def _apply_general_section(self) -> None:
         renderer = self._renderer
-        general = self._reader.general
+        general = self._reader.general  # dict of (variable, value) pairs
 
         if 'head' in general:
             renderer.texts['head'] = general['head']
@@ -123,24 +128,43 @@ class DementiaTimetable():
             self._log("!!! Error: Could not parse config file.")
             traceback.print_exc()
             return
+
         self._reader.parse(self._config_path, dt_settings.fileencoding)
-
         self._apply_general_section()
+        self._update_event.set()
 
+    def _update_renderer_and_execution_manager(self) -> None:
+        self._log("Updating Renderer and Execution Manager...")
         events = []
+        execution_events = []
         t1 = datetime.datetime.now().replace(hour=0, minute=0, second=0)
-        t2 = t1 + datetime.timedelta(days=3)
+        t2 = t1 + datetime.timedelta(days=self._renderer_preview_timespan)
         for recurring_event in self._reader.recurring:
-            events = events + recurring_event.get_next_renderevents(t1, t2)
+            events = events + recurring_event.get_next_simpleevents(t1, t2)
         for unique_event in self._reader.unique:
-            events = events + unique_event.get_next_renderevents(t1, t2)
+            events = events + unique_event.get_next_simpleevents(t1, t2)
+
+        self._log("-------------------------------")
+        self._log("Next Events:")
+        for event in events:
+            self._log("At [" + str(event.time) + "]: " + event.description)
+            execution_events += event.get_execution_events()
+
+        self._log("-------------------------------")
+        self._log("Next Executions:")
+        for event in execution_events:
+            self._log("At [" + str(event.time) + "]: " + event.executable)
+        self._log("-------------------------------")
 
         with self._renderer.event_lock:
             self._renderer.events = events
         self._renderer.events_changed()
 
-    # todo: Remove
-    # @freeze_time("2016-12-22 09:30")
+        with self._execution_manager.event_lock:
+            self._execution_manager.events = execution_events
+            self._execution_manager.events_changed.set()
+
+    @freeze_time("2016-12-22 09:30")
     def mainloop(self) -> None:
         self._update_thread.start()
         self._renderer.mainloop()
@@ -161,6 +185,15 @@ class DementiaTimetable():
                 self._handle_config_change()
                 self._config_change_event.clear()
 
+            if self._update_event.isSet():
+                self._update_renderer_and_execution_manager()
+                self._update_event.clear()
+
+            try:
+                self._execution_manager.tick()
+            except OSError as e:
+                self._log("Couldn't execute: " + str(e))
+
             if datetime.date.today() > self._cleaned_date:
                 self._log("Date change detected. Cleaning...")
                 copyfile(self._config_path, self._config_path + ".bak")
@@ -168,7 +201,9 @@ class DementiaTimetable():
                     self._cleaner.clean(self._config_path)
                 except Exception:
                     self._log("!!! Cleaning the config file failed.")
-                #  config_change_event should be triggered automatically.
+
+                # trigger updating the renderer:
+                self._update_event.set()
                 self._cleaned_date = datetime.date.today()
 
             sleep(dt_settings.updatethread_sleeptime_s)

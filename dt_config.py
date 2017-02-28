@@ -5,25 +5,57 @@
 
 from dt_event import Event
 from dt_event import UniqueEvent, UniqueTime
-from dt_event import RecurringEvent, RecurringTime
+from dt_event import RecurringEvent, RecurringTime, ExecutionTime
 from datetime import datetime
+import re
 
 
 class ConfigReader:
+    execution_pattern = re.compile(r"(\+|\-)\s*(\d+)\s*([^+-]+)(?:\s|$)")
+
     def __init__(self):
         self.general = {"uniquedateformat": "%H:%M-%d.%m.%Y"}
         self.recurring = []
         self.unique = []
 
-    def _parse_event_description(self, line: str, event: Event,
-                                 section: str) -> None:
-        event.description = line
+    def _finish_event(self, line: str, event: Event, section: str) -> None:
         if section == "recurring":
             self.recurring.append(event)
         elif section == "unique":
             self.unique.append(event)
         else:
             raise Exception("Inside unknown section: " + line)
+
+    def _parse_event_description(self, line: str, event: Event) -> None:
+        event.description = line
+
+    def _parse_execution_line(self, line: str, event: Event) -> None:
+        res = ConfigReader.execution_pattern.split(line)
+        res = res[1:]  # omit the first empty string
+        offset = 1
+        expectingTime = False
+        expectingExecutable = False
+        for group in res:
+            if not group:  # empty strings between matches
+                continue
+
+            if expectingTime:
+                if "+" in group or "-" in group:
+                    raise Exception("Invalid character: " + line)
+                offset = offset * int(group)
+                expectingExecutable = True
+                expectingTime = False
+
+            elif expectingExecutable:
+                if "+" in group or "-" in group:
+                    raise Exception("Invalid character: " + line)
+                # finished here:
+                event.execution_times.append(ExecutionTime(offset, group))
+                expectingExecutable = False
+
+            else:  # expecting sign
+                offset = int(group + "1")  # first just store sign
+                expectingTime = True
 
     def _parse_recurring_event_times(self, line: str) -> RecurringEvent:
         hour = -1
@@ -85,6 +117,8 @@ class ConfigReader:
             section = "general"
             currentEvent = Event()
             expectingEventDescription = False
+            expectingExecutionLine = False
+            eventDone = False
 
             for line in f.readlines():
                 line = line.strip()
@@ -92,8 +126,16 @@ class ConfigReader:
                     continue
 
                 if expectingEventDescription:
-                    self._parse_event_description(line, currentEvent, section)
+                    self._parse_event_description(line, currentEvent)
                     expectingEventDescription = False
+
+                    expectingExecutionLine = "exec" in currentEvent.modifiers
+                    eventDone = not expectingExecutionLine
+
+                elif expectingExecutionLine:
+                    self._parse_execution_line(line, currentEvent)
+                    expectingExecutionLine = False
+                    eventDone = True
 
                 elif line[0] is '[' and line[-1] is ']':
                     section = line[1:-1]
@@ -112,6 +154,10 @@ class ConfigReader:
                             self.general['uniquedateformat']
                     )
                     expectingEventDescription = True
+
+                if eventDone:
+                    self._finish_event(line, currentEvent, section)
+                    eventDone = False
 
 
 class ConfigWriter():
@@ -187,6 +233,14 @@ class ConfigWriter():
 
         return line
 
+    def _get_executions_string(self, event: Event) -> str:
+        line = ""
+
+        for time in event.execution_times:
+            line += str(time.offset) + " " + time.executable
+
+        return line
+
     def _build_lines(self, general: dict,
                      recurring: list,
                      unique: list) -> list:
@@ -203,6 +257,8 @@ class ConfigWriter():
         for event in recurring:
             lines.append(self._get_recurring_string(event))
             lines.append(event.description)
+            if "exec" in event.modifiers:
+                lines.append(self._get_executions_string(event))
             lines.append("")
         lines.append("")
 
@@ -210,6 +266,8 @@ class ConfigWriter():
         for event in unique:
             lines.append(self._get_unique_string(event, dateformat))
             lines.append(event.description)
+            if "exec" in event.modifiers:
+                lines.append(self._get_executions_string(event))
             lines.append("")
 
         return lines

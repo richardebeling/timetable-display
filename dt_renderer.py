@@ -1,14 +1,15 @@
 #!/usr/bin/python3
 
+from dt_event import SimpleEvent
 from typing import List
-from dt_event import RenderEvent
 import tkinter
 import threading
 import datetime
 
-# todo: Ton bei Wechsel - Lautstärke anpassen nach Umgebungslautstärke
-# todo: Videos bei Wechsel?
 # todo: Farben anpassen nach Umgebungslicht?
+# todo: Für notime auch leeres Label erzeugen, damit der Hintergrund
+# überfärbt wird wenn die Zeile markiert ist.
+# todo: Einstellung für Nachtzeit, in der Bildschirm schwarz bleibt
 
 
 class TableRenderer():
@@ -32,7 +33,7 @@ class TableRenderer():
         self.colors = {'fg': "black", 'bg': "white", 'hfg': "yellow",
                        'hbg': "blue", 'pbg': "black", 'pfg': "grey"}
 
-        self.events = []                          # RenderEvent
+        self.events = []                          # SimpleEvent
         self.event_lock = threading.Lock()
 
         self._labels = []
@@ -154,13 +155,13 @@ class TableRenderer():
                    sticky="NSWE")
         self._labels.append([None, label, None])
 
-    def _create_normal_event_line(self, event: RenderEvent, row: int) -> None:
+    def _create_normal_event_line(self, event: SimpleEvent, row: int) -> None:
         return self._create_event_line(event, row, self._get_normal_label)
 
-    def _create_past_event_line(self, event: RenderEvent, row: int) -> None:
+    def _create_past_event_line(self, event: SimpleEvent, row: int) -> None:
         return self._create_event_line(event, row, self._get_past_label)
 
-    def _create_event_line(self, event: RenderEvent, row: int, func) -> None:
+    def _create_event_line(self, event: SimpleEvent, row: int, func) -> None:
         ls = []
         if "until" in event.modifiers:
             label_until = func(self.texts['untiltext'] + " ")
@@ -185,7 +186,7 @@ class TableRenderer():
 
         self._labels.append(ls)
 
-    def _create_hilight_event_line(self, event: RenderEvent, row: int) -> None:
+    def _create_hilight_event_line(self, event: SimpleEvent, row: int) -> None:
         ls = []
 
         if "until" in event.modifiers:
@@ -227,7 +228,7 @@ class TableRenderer():
         label.grid(column=self._col_text, row=row, sticky="NSWE")
         self._labels.append([None, None, label])
 
-    def _get_events_to_render(self) -> List[RenderEvent]:
+    def _get_events_to_render(self) -> List[SimpleEvent]:
         today_events = []
         today_limit = datetime.datetime.now()
         today_limit = today_limit.replace(hour=23, minute=59, second=59)
@@ -250,7 +251,7 @@ class TableRenderer():
 
         return today_events, tomorrow_events
 
-    def _find_event_to_hilight(self, events: List[RenderEvent]) -> RenderEvent:
+    def _find_event_to_hilight(self, events: List[SimpleEvent]) -> SimpleEvent:
         hilight_event = None
         limit = datetime.datetime.now()
         limit = limit - datetime.timedelta(minutes=self.hilight_after)
@@ -270,9 +271,9 @@ class TableRenderer():
         self._labels = []
 
     def _fill_window(self,
-                     today_events: List[RenderEvent],
-                     tomorrow_events: List[RenderEvent],
-                     hilight_event: RenderEvent) -> None:
+                     today_events: List[SimpleEvent],
+                     tomorrow_events: List[SimpleEvent],
+                     hilight_event: SimpleEvent) -> None:
 
         self._build_font_string()
         event_drawn = False
