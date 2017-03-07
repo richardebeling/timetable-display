@@ -226,5 +226,12 @@ if __name__ == "__main__":
                         help="start in fullscreen mode", action="store_true")
     args = parser.parse_args()
 
-    table = DementiaTimetable(args.fullscreen)
-    table.mainloop()
+    # defensive loop to restart if error occurs
+    exited_gracefully = False
+    while not exited_gracefully:
+        try:
+            table = DementiaTimetable(args.fullscreen)
+            table.mainloop()
+            exited_gracefully = True
+        except Exception:
+            exited_gracefully = False
