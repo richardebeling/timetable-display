@@ -7,9 +7,9 @@ import threading
 import datetime
 
 # todo: Farben anpassen nach Umgebungslicht?
-# todo: Für notime auch leeres Label erzeugen, damit der Hintergrund
-# überfärbt wird wenn die Zeile markiert ist.
-# todo: Einstellung für Nachtzeit, in der Bildschirm schwarz bleibt
+
+# sudo service lightdm start
+# DISPLAY=:0 ./dt_main.py
 
 
 class TableRenderer():
@@ -17,7 +17,7 @@ class TableRenderer():
     _col_time = 1
     _col_text = 2
 
-    def __init__(self):
+    def __init__(self, fullscreen):
         # todo: Lock for all these settings?
         self.count_today = 5
         self.count_tomorrow = 2
@@ -45,17 +45,32 @@ class TableRenderer():
         self._tk = tkinter.Tk()
         self._tk.wm_title("Dementia Timetable")
         self._tk.focus_set()
-        self._tk.bind('f', self._toggle_fullscreen)
+        self._tk.bind('f', self._toggle_fullscreen_event_handler)
         self._tk.bind('q', lambda e: self._tk.quit())
-        self._tk.bind('<F11>', self._toggle_fullscreen)
+        self._tk.bind('<F11>', self._toggle_fullscreen_event_handler)
         self._tk.bind('<Escape>', lambda e: self._tk.quit())
+
+        if fullscreen:
+            self._toggle_fullscreen()
+
+        # in order to detect and raise a keyboard interrupt, tkinter has to be
+        # active -> generate activity:
+        self._dummy_activity()
+
+    def _dummy_activity(self):
+        self._tk.after(100, self._dummy_activity)
 
     def _delete_window_callback(self) -> None:
         self._tk.quit()
 
-    def _toggle_fullscreen(self, event):
+    def _toggle_fullscreen_event_handler(self, event):
+        self._toggle_fullscreen()
+
+    def _toggle_fullscreen(self):
         self._fullscreen_state = not self._fullscreen_state
         self._tk.attributes('-fullscreen', self._fullscreen_state)
+        cursor = "none" if self._fullscreen_state else "arrow"
+        self._tk.config(cursor=cursor)
 
     def _sort_events(self) -> None:
         with self.event_lock:
@@ -75,9 +90,16 @@ class TableRenderer():
                     if event.time < now:
                         self.events.remove(event)
 
+    def _remove_nodraw_events(self) -> None:
+        with self.event_lock:
+            for event in self.events:
+                if "nodraw" in event.modifiers:
+                    self.evets.remove(event)
+
     def _handle_new_events(self) -> None:
         self._sort_events()
         self._remove_past_events()
+        self._remove_nodraw_events()
 
         today_events, tomorrow_events = self._get_events_to_render()
         hilight_event = self._find_event_to_hilight(today_events)
@@ -161,25 +183,25 @@ class TableRenderer():
     def _create_past_event_line(self, event: SimpleEvent, row: int) -> None:
         return self._create_event_line(event, row, self._get_past_label)
 
-    def _create_event_line(self, event: SimpleEvent, row: int, func) -> None:
+    def _create_event_line(self, event: SimpleEvent, row: int,
+                           get_label_func: callable) -> None:
         ls = []
-        if "until" in event.modifiers:
-            label_until = func(self.texts['untiltext'] + " ")
-            label_until.configure(anchor=tkinter.E)
-            label_until.grid(column=self._col_arrow, row=row, sticky="NSWE")
-            ls.append(label_until)
-        else:
-            ls.append(None)
 
-        if "notime" not in event.modifiers:
-            label_time = func(event.timestring() + " ")
-            label_time.configure(anchor=tkinter.E)
-            label_time.grid(column=self._col_time, row=row, sticky="NSWE")
-            ls.append(label_time)
-        else:
-            ls.append(None)
+        condition_until = "until" in event.modifiers
+        text = self.texts['untiltext'] + " " if condition_until else ""
+        label_until = get_label_func(text)
+        label_until.configure(anchor=tkinter.E)
+        label_until.grid(column=self._col_arrow, row=row, sticky="NSWE")
+        ls.append(label_until)
 
-        label_text = func(event.description)
+        condition_time = "notime" not in event.modifiers
+        text = event.timestring() + " " if condition_time else ""
+        label_time = get_label_func(text)
+        label_time.configure(anchor=tkinter.E)
+        label_time.grid(column=self._col_time, row=row, sticky="NSWE")
+        ls.append(label_time)
+
+        label_text = get_label_func(event.description)
         label_text.configure(anchor=tkinter.W)
         label_text.grid(column=self._col_text, row=row, sticky="NSWE")
         ls.append(label_text)

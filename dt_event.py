@@ -13,7 +13,8 @@ ExecutionTime = namedtuple("ExecutionTime", "offset executable")
 
 
 class Event:
-    VALID_MODIFIERS = ["notime", "until", "tomorrow", "padding", "exec"]
+    VALID_MODIFIERS = ["notime", "until", "tomorrow", "padding", "exec",
+                       "nodraw"]
 
     def __init__(self):
         self.description = ""

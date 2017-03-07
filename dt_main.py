@@ -13,6 +13,8 @@ from watchdog.events import FileSystemEventHandler, FileModifiedEvent
 import traceback
 import threading
 import datetime
+import locale
+import argparse
 from os import path
 from time import sleep
 from shutil import copyfile
@@ -32,8 +34,10 @@ class ConfigChangeHandler(FileSystemEventHandler):
 
 
 class DementiaTimetable():
-    def __init__(self):
+    def __init__(self, fullscreen):
         self._log("Dementia Timetable started.")
+        if fullscreen:
+            self._log("Starting in fullscreen mode.")
 
         self._config_path = path.abspath(dt_settings.filename)
         if not path.isfile(self._config_path):
@@ -58,7 +62,7 @@ class DementiaTimetable():
         self._cleaner = ConfigCleaner()
         self._cleaned_date = datetime.date.today()
 
-        self._renderer = TableRenderer()
+        self._renderer = TableRenderer(fullscreen)
         # renderer will be filled when config is reloaded
 
         self._execution_manager = ExecutionManager()
@@ -169,7 +173,10 @@ class DementiaTimetable():
     # @freeze_time("2017-02-28 12:14:55", tick=True)
     def mainloop(self) -> None:
         self._update_thread.start()
-        self._renderer.mainloop()
+        try:
+            self._renderer.mainloop()
+        except KeyboardInterrupt:
+            pass
 
         self._stop_update_thread.set()
 
@@ -212,5 +219,12 @@ class DementiaTimetable():
 
 
 if __name__ == "__main__":
-    table = DementiaTimetable()
+    locale.setlocale(locale.LC_ALL, '')  # apply system locale
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-f", "--fullscreen",
+                        help="start in fullscreen mode", action="store_true")
+    args = parser.parse_args()
+
+    table = DementiaTimetable(args.fullscreen)
     table.mainloop()
