@@ -8,9 +8,6 @@ import datetime
 
 # todo: Farben anpassen nach Umgebungslicht?
 
-# sudo service lightdm start
-# DISPLAY=:0 ./dt_main.py
-
 
 class TableRenderer():
     _col_arrow = 0
