@@ -103,7 +103,8 @@ class TableRenderer():
         self._tk.configure(bg=self.colors['bg'])
 
         self._clear_window()
-        self._fill_window(today_events, tomorrow_events, hilight_event)
+        self._fill_window(today_events, tomorrow_events, hilight_event,
+                          datetime.datetime.now())
 
         if hilight_event is None:
             t = datetime.datetime.today().replace(hour=0, minute=0, second=0)
@@ -292,8 +293,8 @@ class TableRenderer():
     def _fill_window(self,
                      today_events: List[SimpleEvent],
                      tomorrow_events: List[SimpleEvent],
-                     hilight_event: SimpleEvent) -> None:
-
+                     hilight_event: SimpleEvent,  # or None
+                     current_time: datetime.datetime) -> None:
         self._build_font_string()
         event_drawn = False
         row = 0
@@ -313,10 +314,10 @@ class TableRenderer():
             event_drawn = True
             if "padding" in event.modifiers:
                 self._create_padding_line(row)
-            elif hilight_event is not None and event.time < hilight_event.time:
-                self._create_past_event_line(event, row)
             elif event == hilight_event:
                 self._create_hilight_event_line(event, row)
+            elif event.time < current_time:
+                self._create_past_event_line(event, row)
             else:
                 self._create_normal_event_line(event, row)
             row = row + 1
