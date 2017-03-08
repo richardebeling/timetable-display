@@ -29,7 +29,7 @@ class ConfigChangeHandler(FileSystemEventHandler):
     def on_modified(self, event: FileModifiedEvent) -> None:
         if event.is_directory:
             return
-        if self._filename == path.abspath(event.src_path):
+        if path.abspath(self._filename) == path.abspath(event.src_path):
             self._event.set()
 
 
@@ -135,6 +135,7 @@ class DementiaTimetable():
             traceback.print_exc()
             return
 
+        self._log("Applying changes...")
         self._reader.parse(self._config_path, dt_settings.fileencoding)
         self._apply_general_section()
         self._update_event.set()
