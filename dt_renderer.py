@@ -209,28 +209,23 @@ class TableRenderer():
     def _create_hilight_event_line(self, event: SimpleEvent, row: int) -> None:
         ls = []
 
-        if "until" in event.modifiers:
-            label_until = self._get_hilight_label(
-                    self.texts['untiltext'] + " ")
-            label_until.configure(anchor=tkinter.E)
-            label_until.grid(column=self._col_arrow, row=row, sticky="NSWE")
-            ls.append(label_until)
-        elif self._arrow is not None:
-            label_arr = tkinter.Label(self._tk, image=self._arrow,
-                                      anchor=tkinter.E)
-            label_arr.configure(bg=self.colors['hbg'], fg=self.colors['hfg'])
-            label_arr.grid(column=self._col_arrow, row=row, sticky="NSWE")
-            ls.append(label_arr)
+        if "until" not in event.modifiers and self._arrow is not None:
+            label_until = tkinter.Label(self._tk, image=self._arrow)
+            label_until.configure(bg=self.colors['hbg'], fg=self.colors['hfg'])
         else:
-            ls.append(None)
+            condition_until = "until" in event.modifiers
+            text = self.texts['untiltext'] + " " if condition_until else ""
+            label_until = self._get_hilight_label(text)
+        label_until.configure(anchor=tkinter.E)
+        label_until.grid(column=self._col_arrow, row=row, sticky="NSWE")
+        ls.append(label_until)
 
-        if "notime" not in event.modifiers:
-            label_time = self._get_hilight_label(event.timestring() + " ")
-            label_time.configure(anchor=tkinter.E)
-            label_time.grid(column=self._col_time, row=row, sticky="NSWE")
-            ls.append(label_time)
-        else:
-            ls.append(None)
+        condition_time = "notime" not in event.modifiers
+        text = event.timestring() + " " if condition_time else ""
+        label_time = self._get_hilight_label(text)
+        label_time.configure(anchor=tkinter.E)
+        label_time.grid(column=self._col_time, row=row, sticky="NSWE")
+        ls.append(label_time)
 
         label_text = self._get_hilight_label(event.description)
         label_text.configure(anchor=tkinter.W)
