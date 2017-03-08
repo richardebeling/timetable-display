@@ -112,7 +112,7 @@ class ConfigReader:
 
         return event
 
-    def parse(self, filename: str, encoding="utf-8") -> None:
+    def parse(self, filename: str, encoding: str) -> None:
         with open(filename, "r", encoding=encoding) as f:
             section = "general"
             currentEvent = Event()
@@ -141,8 +141,12 @@ class ConfigReader:
                     section = line[1:-1]
 
                 elif section == "general":
-                    splits = line.split('=', 1)
-                    self.general[splits[0].strip().lower()] = splits[1].strip()
+                    splits = line.split('=', maxsplit=1)
+                    if len(splits) == 2:
+                        key = splits[0].strip().lower()
+                        self.general[key] = splits[1].strip()
+                    else:
+                        raise Exception("Invalid general line: " + line)
 
                 elif section == "recurring":
                     currentEvent = self._parse_recurring_event_times(line)
@@ -168,7 +172,7 @@ class ConfigWriter():
     def _get_recurring_string(self, event: RecurringEvent) -> str:
         line = ""
         added = []
-        times = event.getRecurringTimes()
+        times = event.get_recurring_times()
         firsttime = True
 
         for time in times:
@@ -212,7 +216,7 @@ class ConfigWriter():
     def _get_unique_string(self, event: UniqueEvent, dateformat: str) -> str:
         line = ""
         added = []
-        times = event.getUniqueTimes()
+        times = event.get_unique_times()
         firsttime = True
 
         for time in times:
@@ -274,9 +278,9 @@ class ConfigWriter():
 
     def write(self, filename: str, general: dict,
               recurring: list,
-              unique: list) -> None:
+              unique: list, encoding: str) -> None:
         lines = self._build_lines(general, recurring, unique)
-        with open(filename, 'w') as f:
+        with open(filename, 'w', encoding=encoding) as f:
             f.write('\n'.join(lines))
 
 
@@ -285,6 +289,7 @@ class ConfigCleaner(ConfigReader, ConfigWriter):
         ConfigReader.init(self)
         ConfigWriter.init(self)
 
-    def clean(self, filename) -> None:
-        self.parse(filename)
-        self.write(filename, self.general, self.recurring, self.unique)
+    def clean(self, filename: str, encoding: str) -> None:
+        self.parse(filename, encoding)
+        self.write(filename, self.general, self.recurring, self.unique,
+                   encoding)

@@ -207,9 +207,11 @@ class DementiaTimetable():
                 self._log("Date change detected. Cleaning...")
                 copyfile(self._config_path, self._config_path + ".bak")
                 try:
-                    self._cleaner.clean(self._config_path)
+                    self._cleaner.clean(self._config_path,
+                                        dt_settings.fileencoding)
                 except Exception:
-                    self._log("!!! Cleaning the config file failed.")
+                    self._log("!!! Cleaning the config file failed. Error:")
+                    traceback.print_exc()
 
                 # trigger updating the renderer:
                 self._update_event.set()
