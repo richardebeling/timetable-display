@@ -243,8 +243,11 @@ class ConfigWriter():
         line = ""
 
         for time in event.execution_times:
-            line += str(time.offset) + " " + time.executable
+            if time.offset >= 0:
+                line += "+"
+            line += str(time.offset) + " " + time.executable + " "
 
+        print(line)
         return line
 
     def _build_lines(self, general: dict,
