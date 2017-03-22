@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 
-# from freezegun import freeze_time
-
 from dt_config import ConfigReader, ConfigCleaner
 import dt_settings
 from dt_renderer import TableRenderer
@@ -171,7 +169,6 @@ class DementiaTimetable():
             self._execution_manager.events = execution_events
             self._execution_manager.events_changed.set()
 
-    # @freeze_time("2017-02-28 12:14:55", tick=True)
     def mainloop(self) -> None:
         self._update_thread.start()
         try:
@@ -221,7 +218,9 @@ class DementiaTimetable():
             sleep(dt_settings.updatethread_sleeptime_s)
 
 
-if __name__ == "__main__":
+# from freezegun import freeze_time
+# @freeze_time("2017-02-24 12:14:55", tick=True)
+def main():
     locale.setlocale(locale.LC_ALL, '')  # apply system locale
 
     parser = argparse.ArgumentParser()
@@ -238,3 +237,7 @@ if __name__ == "__main__":
             exited_gracefully = True
         except Exception:
             exited_gracefully = False
+
+
+if __name__ == "__main__":
+    main()

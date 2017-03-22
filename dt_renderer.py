@@ -7,6 +7,7 @@ import threading
 import datetime
 
 # todo: Farben anpassen nach Umgebungslicht?
+# todo: Script für Fernseher stummschalten
 
 
 class TableRenderer():
@@ -321,7 +322,7 @@ class TableRenderer():
             self._create_padding_line(row)
             row = row + 1
 
-        if len(self.texts['tomorrow']) != 0:
+        if len(self.texts['tomorrow']) != 0 and len(tomorrow_events) > 0:
             self._create_head_line(self._prepare_tomorrow_text(), row)
             row = row + 1
 

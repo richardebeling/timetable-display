@@ -65,7 +65,7 @@ class RecurringEvent(Event):
             c_met = (d.isocalendar()[1] % 2 == 1)
         elif t.condition == RecurringEvent.CONDITION_EVEN:
             c_met = (d.isocalendar()[1] % 2 == 0)
-        return (c_met and d.weekday() == t.dow)
+        return (c_met and d.isoweekday() == t.dow)
 
     def get_next_datetimes(self, start: datetime,
                            end: datetime) -> List[datetime]:
