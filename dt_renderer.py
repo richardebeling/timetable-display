@@ -92,7 +92,7 @@ class TableRenderer():
         with self.event_lock:
             for event in self.events:
                 if "nodraw" in event.modifiers:
-                    self.evets.remove(event)
+                    self.events.remove(event)
 
     def _handle_new_events(self) -> None:
         self._sort_events()
