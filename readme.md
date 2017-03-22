@@ -4,6 +4,8 @@
 
 ## How to run?
 Just `./dt_main.py`
+`-f` or `--fullscreen` is a valid parameter to directly go to fullscreen-mode after starting.
+See `./dt_main.py --help`
 
 ## Hotkeys
 - F / F11 - Fullscreen
@@ -17,6 +19,7 @@ Just `./dt_main.py`
 
 ### Configuration file - User Settings
 3 Sections, beginning at the markers (`[general]`, `[recurring]` or `[unique]`).
+Each section can occur more than once, though I hardly suggest not to do that. The cleaning mechanism will also undo that structuring in the first cleaning run.
 
 #### General Section
 Simple .ini like settings:
@@ -34,6 +37,7 @@ Whitespaces surrounding the variable or value will be stripped.
 - `untiltext`: Text to render when the "until" modifier is set for an event.
 - `todaycount`: Number of events to display for the current day.
 - `tomorrowcount`: Number of events to display for the next day.
+- `hilightafter`: Time in minutes that every event will stay hilighted after it passed.
 - `font`: String
 - `fontsize`: Number
 - `fontbold`: Bool (1/0)
@@ -51,7 +55,7 @@ Whitespaces surrounding the variable or value will be stripped.
 
 ### Recurring section
 Events that are recurring in a two-week-period or more often.
-Each event consists of two lines.
+Each event consists of two or three lines, depending on whether the `exec` modifier is set.
 
 The first linie specifies the times when this event happens. It consists of the
 time of the day followed by the days where it happens. Possible day modifiers are
@@ -67,16 +71,24 @@ Also, you can append modifiers to the first line. Valid modifiers are:
 - `until`: Render the "untiltext" on the left side of the time
 - `tomorrow`: This event will be shown in the tomorrow preview
 - `padding`: This event marks a padding line
+- `nodraw`: This event will not be rendered. Useful in combination with exec.
+- `exec`: This event has an execution line. See below for more detail.
 
 The second line contains the event description that will be rendered.
 For padding events, a dummy text is still needed.
 
+A third line (execution line) is only legal if the `exec` modifier is set. It consist of offsets to the event's time(s) plus the strings that should be executed at that time.
+
+Example: `+0 ./script.sh param1 paramt2 -5 ./another.sh test`
+
 ### Unique section
 Events that are unique or reoccur less often than once per two weeks or unperiodically.
-Each event consists of two lines.
+Each event consists of two or three lines, depending on whether the `exec` modifier is set.
 
 The first line gives the timestamps when these
 events happen. More than one timestamp can be given, seperated by spaces. Thus,
 the `uniquedateformat` setting should not contain spaces.
 
 The second line gives the event descriptions just like in the recurring secion.
+
+All modifiers from the recurring section are also valid here. A third line might exist when the `exec` modifier is set.
