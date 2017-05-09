@@ -6,20 +6,21 @@ import tkinter
 import threading
 import datetime
 
-# todo: Farben anpassen nach Umgebungslicht?
-# todo: Script für Fernseher stummschalten
-
 
 class TableRenderer():
     _col_arrow = 0
     _col_time = 1
     _col_text = 2
+    _col_clock = 3
+    _col_count = 4
 
     def __init__(self, fullscreen):
         # todo: Lock for all these settings?
         self.count_today = 5
         self.count_tomorrow = 2
         self.hilight_after = 10                   # minutes
+        self.show_clock = True
+        self.hide_until_when_done = False
         self.keep_past_events_from_today = True
 
         self.font = {'name': "Arial", 'size': 30, 'bold': False,
@@ -47,6 +48,9 @@ class TableRenderer():
         self._tk.bind('q', lambda e: self._tk.quit())
         self._tk.bind('<F11>', self._toggle_fullscreen_event_handler)
         self._tk.bind('<Escape>', lambda e: self._tk.quit())
+        self._clock_text = tkinter.StringVar()
+        self._update_clock_text()
+        self._tk.grid_columnconfigure(self._col_clock, weight=1)
 
         if fullscreen:
             self._toggle_fullscreen()
@@ -54,6 +58,11 @@ class TableRenderer():
         # in order to detect and raise a keyboard interrupt, tkinter has to be
         # active -> generate activity:
         self._dummy_activity()
+
+    def _update_clock_text(self):
+        text = "{dt.hour}:{dt.minute:02d}".format(dt=datetime.datetime.now())
+        self._clock_text.set(text)
+        self._tk.after(1000, self._update_clock_text)
 
     def _dummy_activity(self):
         self._tk.after(100, self._dummy_activity)
@@ -149,6 +158,12 @@ class TableRenderer():
         label.config(font=self._font_string)
         return label
 
+    def _get_stringvar_label(self, stringvar) -> tkinter.Label:
+        label = tkinter.Label(self._tk, textvariable=stringvar)
+        label.config(bg=self.colors['bg'], fg=self.colors['fg'])
+        label.config(font=self._font_string)
+        return label
+
     def _get_padding_label(self) -> tkinter.Label:
         pad_font = self._font_string.replace(
             str(self.font['size']), str(self.font['paddingsize']))
@@ -169,29 +184,42 @@ class TableRenderer():
         label.config(font=self._font_string)
         return label
 
+    def _create_head_line_with_clock(self, text: str, row: int) -> None:
+        label = self._get_normal_label(text)
+        label.configure(anchor=tkinter.W)
+        label.grid(columnspan=self._col_count-self._col_arrow-1,
+                   column=self._col_arrow, row=row, sticky="NSWE")
+        label_clock = self._get_stringvar_label(self._clock_text)
+        label_clock.configure(anchor=tkinter.E)
+        label_clock.grid(column=self._col_clock, row=row, sticky="NSWE")
+        self._labels.append([None, label, None, label_clock])
+
     def _create_head_line(self, text: str, row: int) -> None:
         label = self._get_normal_label(text)
         label.configure(anchor=tkinter.W)
-        label.grid(columnspan=3, column=self._col_arrow, row=row,
+        label.grid(columnspan=self._col_count, column=self._col_arrow, row=row,
                    sticky="NSWE")
-        self._labels.append([None, label, None])
+        self._labels.append([label, None, None, None])
 
     def _create_normal_event_line(self, event: SimpleEvent, row: int) -> None:
         return self._create_event_line(event, row, self._get_normal_label)
 
     def _create_past_event_line(self, event: SimpleEvent, row: int) -> None:
-        return self._create_event_line(event, row, self._get_past_label)
+        return self._create_event_line(event, row, self._get_past_label, False)
 
     def _create_event_line(self, event: SimpleEvent, row: int,
-                           get_label_func: callable) -> None:
+                           get_label_func: callable, until=True) -> None:
         ls = []
 
-        condition_until = "until" in event.modifiers
-        text = self.texts['untiltext'] + " " if condition_until else ""
-        label_until = get_label_func(text)
-        label_until.configure(anchor=tkinter.E)
-        label_until.grid(column=self._col_arrow, row=row, sticky="NSWE")
-        ls.append(label_until)
+        if until:
+            condition_until = "until" in event.modifiers
+            text = self.texts['untiltext'] + " " if condition_until else ""
+            label_until = get_label_func(text)
+            label_until.configure(anchor=tkinter.E)
+            label_until.grid(column=self._col_arrow, row=row, sticky="NSWE")
+            ls.append(label_until)
+        else:
+            ls.append(None)
 
         condition_time = "notime" not in event.modifiers
         text = event.timestring() + " " if condition_time else ""
@@ -202,8 +230,11 @@ class TableRenderer():
 
         label_text = get_label_func(event.description)
         label_text.configure(anchor=tkinter.W)
-        label_text.grid(column=self._col_text, row=row, sticky="NSWE")
+        label_text.grid(column=self._col_text, columnspan=self._col_count,
+                        row=row, sticky="NSWE")
         ls.append(label_text)
+
+        ls.append(None)
 
         self._labels.append(ls)
 
@@ -230,8 +261,12 @@ class TableRenderer():
 
         label_text = self._get_hilight_label(event.description)
         label_text.configure(anchor=tkinter.W)
-        label_text.grid(column=self._col_text, row=row, sticky="NSWE")
+        label_text.grid(column=self._col_text,
+                        columnspan=self._col_count-self._col_text, row=row,
+                        sticky="NSWE")
         ls.append(label_text)
+
+        ls.append(None)
 
         self._labels.append(ls)
 
@@ -241,8 +276,9 @@ class TableRenderer():
             label.configure(bg=self.colors['pbg'], fg=self.colors['pbg'])
         else:
             label.configure(bg=self.colors['bg'], fg=self.colors['bg'])
-        label.grid(column=self._col_text, row=row, sticky="NSWE")
-        self._labels.append([None, None, label])
+        label.grid(column=self._col_arrow, columnspan=self._col_count,
+                   row=row, sticky="NSWE")
+        self._labels.append([None, None, label, None])
 
     def _get_events_to_render(self) -> List[SimpleEvent]:
         today_events = []
@@ -296,14 +332,18 @@ class TableRenderer():
         row = 0
 
         if len(self.texts['head']) != 0:
-            self._create_head_line(self.texts['head'], row)
             row = row + 1
             self._create_padding_line(row)
             row = row + 1
 
-        if len(self.texts['today']) != 0 and len(today_events) > 0:
+        if (len(self.texts['today']) != 0 and len(today_events) > 0
+                or self.show_clock):
             event_drawn = True
-            self._create_head_line(self._prepare_today_text(), row)
+            if self.show_clock:
+                self._create_head_line_with_clock(self._prepare_today_text(),
+                                                  row)
+            else:
+                self._create_head_line(self._prepare_today_text(), row)
             row = row + 1
 
         for event in today_events:

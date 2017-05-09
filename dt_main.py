@@ -17,6 +17,8 @@ from os import path
 from time import sleep
 from shutil import copyfile
 
+DEBUG = True
+
 
 class ConfigChangeHandler(FileSystemEventHandler):
     def __init__(self, filename, event_to_set):
@@ -93,6 +95,10 @@ class DementiaTimetable():
             renderer.count_tomorrow = int(general['tomorrowcount'])
         if 'hilightafter' in general:
             renderer.hilight_after = int(general['hilightafter'])
+        if 'showclock' in general:
+            renderer.show_clock = bool(general['showclock'])
+        if 'hideuntilwhendone' in general:
+            renderer.hide_until_when_done = bool(general['hideuntilwhendone'])
 
         if 'font' in general:
             renderer.font['name'] = general['font']
@@ -237,6 +243,8 @@ def main():
             exited_gracefully = True
         except Exception:
             exited_gracefully = False
+            if DEBUG:
+                raise
 
 
 if __name__ == "__main__":
