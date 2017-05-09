@@ -52,6 +52,10 @@ Whitespaces surrounding the variable or value will be stripped.
 - `pfg`: foreground color for an event in the past
 - `arrow`: String, file name of an image (png) that will be rendered if the
     `arrow` modifier is set for an event
+- `showclock`: Bool, the program will show a clock ((h)h:mm) in the upper
+    right corner
+- `hideuntilwhendone`: Bool, the "until" keyboard will disappear in front of
+    past events
 
 ### Recurring section
 Events that are recurring in a two-week-period or more often.
