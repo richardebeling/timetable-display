@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 from dt_event import SimpleEvent
+import dt_settings
 from typing import List
 import tkinter
 import threading
@@ -134,12 +135,12 @@ class TableRenderer():
 
     def _prepare_today_text(self) -> str:
         date = datetime.date.today()
-        datestr = "{d.day}. {d:%B} {d.year}".format(d=date)
+        datestr = dt_settings.dateformat.format(d=date)
         return self.texts['today'].replace("$date$", datestr)
 
     def _prepare_tomorrow_text(self) -> str:
         date = datetime.date.today() + datetime.timedelta(days=1)
-        datestr = "{d.day}. {d:%B} {d.year}".format(d=date)
+        datestr = dt_settings.dateformat.format(d=date)
         return self.texts['tomorrow'].replace("$date$", datestr)
 
     def _build_font_string(self) -> None:

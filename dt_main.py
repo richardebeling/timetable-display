@@ -17,8 +17,6 @@ from os import path
 from time import sleep
 from shutil import copyfile
 
-DEBUG = True
-
 
 class ConfigChangeHandler(FileSystemEventHandler):
     def __init__(self, filename, event_to_set):
@@ -243,8 +241,7 @@ def main():
             exited_gracefully = True
         except Exception:
             exited_gracefully = False
-            if DEBUG:
-                raise
+            traceback.print_exc()
 
 
 if __name__ == "__main__":

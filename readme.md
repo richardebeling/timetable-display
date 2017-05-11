@@ -15,7 +15,9 @@ See `./dt_main.py --help`
 ### dt_settings.py - Internal Settings
 - Configuration file path: `filepath`. Default: `config.cfg`
 - Configuration file encoding: `fileencoding`. Should be `utf-8` or `latin-1` or similar.
-- Update thread sleep time: `undatethread_sleeptime_s`
+- Update thread sleep time: `updatethread_sleeptime_s`
+- Date format: dateformat: Python format string that will be formatted with `s.format(d=datetime.date())`
+    Example: `{d:%A}, {d.day}. {d:%B} {d.year}`
 
 ### Configuration file - User Settings
 3 Sections, beginning at the markers (`[general]`, `[recurring]` or `[unique]`).
