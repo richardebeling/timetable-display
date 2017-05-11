@@ -23,6 +23,8 @@ class TableRenderer():
         self.show_clock = True
         self.hide_until_when_done = False
         self.keep_past_events_from_today = True
+        self.pad_head = False
+        self.pad_foot = False
 
         self.font = {'name': "Arial", 'size': 30, 'bold': False,
                      'italics': False, 'underlined': False, 'paddingsize': 30}
@@ -212,15 +214,12 @@ class TableRenderer():
                            get_label_func: callable, until=True) -> None:
         ls = []
 
-        if until:
-            condition_until = "until" in event.modifiers
-            text = self.texts['untiltext'] + " " if condition_until else ""
-            label_until = get_label_func(text)
-            label_until.configure(anchor=tkinter.E)
-            label_until.grid(column=self._col_arrow, row=row, sticky="NSWE")
-            ls.append(label_until)
-        else:
-            ls.append(None)
+        condition_until = "until" in event.modifiers and until
+        text = self.texts['untiltext'] + " " if condition_until else ""
+        label_until = get_label_func(text)
+        label_until.configure(anchor=tkinter.E)
+        label_until.grid(column=self._col_arrow, row=row, sticky="NSWE")
+        ls.append(label_until)
 
         condition_time = "notime" not in event.modifiers
         text = event.timestring() + " " if condition_time else ""
@@ -333,9 +332,11 @@ class TableRenderer():
         row = 0
 
         if len(self.texts['head']) != 0:
+            self._create_head_line(self.texts['head'], row)
             row = row + 1
-            self._create_padding_line(row)
-            row = row + 1
+            if self.pad_head:
+                self._create_padding_line(row)
+                row = row + 1
 
         if (len(self.texts['today']) != 0 and len(today_events) > 0
                 or self.show_clock):
@@ -375,6 +376,9 @@ class TableRenderer():
             row = row + 1
 
         if len(self.texts['foot']) != 0:
+            if self.pad_foot:
+                self._create_padding_line(row)
+                row = row + 1
             self._create_head_line(self.texts['foot'], row)
             row = row + 1
 

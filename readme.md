@@ -33,6 +33,8 @@ Whitespaces surrounding the variable or value will be stripped.
 - `uniquedateformat`: Python strptime format string, used in the unique section
 - `head`: String that's displayed as header. Empty equals no header.
 - `foot`: Same, for footer.
+- `padhead`: Add a padding line after the header line
+- `padfoot`: Add a padding line before the footer line
 - `today`: String, text before all events that happen today.
     Can contain `$date$`, which will be replaced by the current date.
 - `tomorrow`: Same as today, `$date$` will be replaced by the next day's date.

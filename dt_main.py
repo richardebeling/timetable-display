@@ -94,9 +94,14 @@ class DementiaTimetable():
         if 'hilightafter' in general:
             renderer.hilight_after = int(general['hilightafter'])
         if 'showclock' in general:
-            renderer.show_clock = bool(general['showclock'])
+            renderer.show_clock = bool(int(general['showclock']))
         if 'hideuntilwhendone' in general:
-            renderer.hide_until_when_done = bool(general['hideuntilwhendone'])
+            renderer.hide_until_when_done = bool(
+                int(general['hideuntilwhendone']))
+        if 'padhead' in general:
+            renderer.pad_head = bool(int(general['padhead']))
+        if 'padfoot' in general:
+            renderer.pad_foot = bool(int(general['padfoot']))
 
         if 'font' in general:
             renderer.font['name'] = general['font']
