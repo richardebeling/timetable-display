@@ -8,6 +8,7 @@ from dt_execute import ExecutionManager
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler, FileModifiedEvent
 
+import sys
 import traceback
 import threading
 import datetime
@@ -91,6 +92,9 @@ class DementiaTimetable():
             renderer.count_today = int(general['todaycount'])
         if 'tomorrowcount' in general:
             renderer.count_tomorrow = int(general['tomorrowcount'])
+        if 'tomorrowbeforeevent' in general:
+            renderer.tomorrow_before_event = bool(
+                int(general['tomorrowbeforeevent']))
         if 'hilightafter' in general:
             renderer.hilight_after = int(general['hilightafter'])
         if 'showclock' in general:
@@ -239,15 +243,22 @@ def main():
 
     # defensive loop to restart if error occurs
     exited_gracefully = False
+
+    exception_times = []
+
     while not exited_gracefully:
         try:
             table = DementiaTimetable(args.fullscreen)
             table.mainloop()
             exited_gracefully = True
         except Exception:
-            exited_gracefully = False
             traceback.print_exc()
-
+            exception_times.append(datetime.datetime.now())
+            if len(exception_times) > 4:
+                secs = exception_times[-1] - exception_times[-4]
+                secs = secs.total_seconds()
+                if secs < 2:
+                    sys.exit()
 
 if __name__ == "__main__":
     main()

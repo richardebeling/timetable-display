@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-
 from dt_event import SimpleEvent
 import dt_settings
 from typing import List
@@ -19,6 +18,7 @@ class TableRenderer():
         # todo: Lock for all these settings?
         self.count_today = 5
         self.count_tomorrow = 2
+        self.tomorrow_before_event = False
         self.hilight_after = 10                   # minutes
         self.show_clock = True
         self.hide_until_when_done = False
@@ -53,7 +53,7 @@ class TableRenderer():
         self._tk.bind('<Escape>', lambda e: self._tk.quit())
         self._clock_text = tkinter.StringVar()
         self._update_clock_text()
-        self._tk.grid_columnconfigure(self._col_clock, weight=1)
+        self._tk.grid_columnconfigure(self._col_text, weight=1)
 
         if fullscreen:
             self._toggle_fullscreen()
@@ -62,21 +62,21 @@ class TableRenderer():
         # active -> generate activity:
         self._dummy_activity()
 
-    def _update_clock_text(self):
-        text = "{dt.hour}:{dt.minute:02d}".format(dt=datetime.datetime.now())
+    def _update_clock_text(self) -> None:
+        text = dt_settings.clockformat.format(dt=datetime.datetime.now())
         self._clock_text.set(text)
         self._tk.after(1000, self._update_clock_text)
 
-    def _dummy_activity(self):
+    def _dummy_activity(self) -> None:
         self._tk.after(100, self._dummy_activity)
 
     def _delete_window_callback(self) -> None:
         self._tk.quit()
 
-    def _toggle_fullscreen_event_handler(self, event):
+    def _toggle_fullscreen_event_handler(self, event) -> None:
         self._toggle_fullscreen()
 
-    def _toggle_fullscreen(self):
+    def _toggle_fullscreen(self) -> None:
         self._fullscreen_state = not self._fullscreen_state
         self._tk.attributes('-fullscreen', self._fullscreen_state)
         cursor = "none" if self._fullscreen_state else "arrow"
@@ -204,6 +204,13 @@ class TableRenderer():
                    sticky="NSWE")
         self._labels.append([label, None, None, None])
 
+    def _create_foot_line(self, text: str, row: int) -> None:
+        label = self._get_normal_label(text)
+        label.configure(anchor=tkinter.W)
+        label.grid(columnspan=self._col_count, column=self._col_arrow, row=row,
+                   sticky="SWE")
+        self._labels.append([label, None, None, None])
+
     def _create_normal_event_line(self, event: SimpleEvent, row: int) -> None:
         return self._create_event_line(event, row, self._get_normal_label)
 
@@ -211,11 +218,15 @@ class TableRenderer():
         return self._create_event_line(event, row, self._get_past_label, False)
 
     def _create_event_line(self, event: SimpleEvent, row: int,
-                           get_label_func: callable, until=True) -> None:
+                           get_label_func: callable, until=True,
+                           tomorrow=False) -> None:
         ls = []
 
         condition_until = "until" in event.modifiers and until
-        text = self.texts['untiltext'] + " " if condition_until else ""
+        if tomorrow:
+            text = self._prepare_tomorrow_text() + " "
+        else:
+            text = self.texts['untiltext'] + " " if condition_until else ""
         label_until = get_label_func(text)
         label_until.configure(anchor=tkinter.E)
         label_until.grid(column=self._col_arrow, row=row, sticky="NSWE")
@@ -360,17 +371,21 @@ class TableRenderer():
                 self._create_normal_event_line(event, row)
             row = row + 1
 
-        if event_drawn:
-            self._create_padding_line(row)
-            row = row + 1
-
         if len(self.texts['tomorrow']) != 0 and len(tomorrow_events) > 0:
-            self._create_head_line(self._prepare_tomorrow_text(), row)
-            row = row + 1
+            if event_drawn:
+                self._create_padding_line(row)
+                row = row + 1
+            if not self.tomorrow_before_event:
+                self._create_head_line(self._prepare_tomorrow_text(), row)
+                row = row + 1
 
+        first = True
         for event in tomorrow_events:
             if "padding" in event.modifiers:
                 self._create_padding_line(row)
+            elif first and self.tomorrow_before_event:
+                self._create_event_line(event, row, self._get_normal_label,
+                    until=False, tomorrow=True)
             else:
                 self._create_normal_event_line(event, row)
             row = row + 1
@@ -379,8 +394,13 @@ class TableRenderer():
             if self.pad_foot:
                 self._create_padding_line(row)
                 row = row + 1
-            self._create_head_line(self.texts['foot'], row)
+            self._create_foot_line(self.texts['foot'], row)
             row = row + 1
+
+        for i in range(row - 2):
+            self._tk.grid_rowconfigure(i, weight=0)
+
+        self._tk.grid_rowconfigure(row - 1, weight=1)
 
         return hilight_event
 

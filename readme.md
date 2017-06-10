@@ -18,6 +18,8 @@ See `./dt_main.py --help`
 - Update thread sleep time: `updatethread_sleeptime_s`
 - Date format: dateformat: Python format string that will be formatted with `s.format(d=datetime.date())`
     Example: `{d:%A}, {d.day}. {d:%B} {d.year}`
+- Clock format: clockformat: Python format string that will be formatted with `s.format(dt=datetime.datetime.now())`
+    Example: `{dt.hour}:{dt.minute:02d}`
 
 ### Configuration file - User Settings
 3 Sections, beginning at the markers (`[general]`, `[recurring]` or `[unique]`).
@@ -34,10 +36,11 @@ Whitespaces surrounding the variable or value will be stripped.
 - `head`: String that's displayed as header. Empty equals no header.
 - `foot`: Same, for footer.
 - `padhead`: Add a padding line after the header line
-- `padfoot`: Add a padding line before the footer line
+- `padfoot`: Add a padding line before the footer line. Note that the footer will always stick to the bottom of the screen, even without the line, so this shouldn't be necessary.
 - `today`: String, text before all events that happen today.
     Can contain `$date$`, which will be replaced by the current date.
 - `tomorrow`: Same as today, `$date$` will be replaced by the next day's date.
+- `tomorrowbeforeevent`: Bool, if set, the tomorrow text will not be in a seperate line but before the first event on the next day.
 - `untiltext`: Text to render when the "until" modifier is set for an event.
 - `todaycount`: Number of events to display for the current day.
 - `tomorrowcount`: Number of events to display for the next day.
