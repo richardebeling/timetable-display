@@ -103,12 +103,15 @@ class ConfigReader:
         tokens = line.split()
         for token in tokens:
             token.strip()
-            try:
-                d = datetime.strptime(token, dateformat)
-                t = UniqueTime(d.day, d.month, d.year, d.hour, d.minute)
-                event.add_unique_time(t)
-            except ValueError:
-                raise Exception("Error parsing: " + token)
+            if token in Event.VALID_MODIFIERS:
+                event.modifiers.append(token)
+            else:
+                try:
+                    d = datetime.strptime(token, dateformat)
+                    t = UniqueTime(d.day, d.month, d.year, d.hour, d.minute)
+                    event.add_unique_time(t)
+                except ValueError:
+                    raise Exception("Error parsing: " + token)
 
         return event
 
@@ -247,7 +250,6 @@ class ConfigWriter():
                 line += "+"
             line += str(time.offset) + " " + time.executable + " "
 
-        print(line)
         return line
 
     def _build_lines(self, general: dict,
