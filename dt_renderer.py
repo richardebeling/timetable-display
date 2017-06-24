@@ -397,10 +397,12 @@ class TableRenderer():
             self._create_foot_line(self.texts['foot'], row)
             row = row + 1
 
-        for i in range(row - 2):
+        rowcount = self._tk.grid_size()[1]
+        for i in range(rowcount - 1):
             self._tk.grid_rowconfigure(i, weight=0)
 
-        self._tk.grid_rowconfigure(row - 1, weight=1)
+        if len(self.texts['foot']) != 0:
+            self._tk.grid_rowconfigure(rowcount - 1, weight=1)
 
         return hilight_event
 
