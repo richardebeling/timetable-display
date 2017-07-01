@@ -1,4 +1,4 @@
 #/bin/bash
 
 tvservice -p
-xset dpms force on
+DISPLAY=:0 xset dpms force on
