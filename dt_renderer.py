@@ -53,7 +53,6 @@ class TableRenderer():
         self._tk.bind('<Escape>', lambda e: self._tk.quit())
         self._clock_text = tkinter.StringVar()
         self._update_clock_text()
-        self._tk.grid_columnconfigure(self._col_text, weight=1)
 
         if fullscreen:
             self._toggle_fullscreen()
@@ -331,6 +330,14 @@ class TableRenderer():
                 if element is not None:
                     element.grid_forget()
                     element.destroy()
+
+        for row in range(self._tk.grid_size()[1]):
+            self._tk.rowconfigure(row, minsize=0, pad=0, weight=0, uniform="")
+
+        for column in range(self._tk.grid_size()[0]):
+            self._tk.columnconfigure(column, minsize=0, pad=0, weight=0, uniform="")
+
+        self._tk.grid_columnconfigure(self._col_text, weight=1)
         self._labels = []
 
     def _fill_window(self,
@@ -395,14 +402,8 @@ class TableRenderer():
                 self._create_padding_line(row)
                 row = row + 1
             self._create_foot_line(self.texts['foot'], row)
+            self._tk.grid_rowconfigure(row, weight=1)
             row = row + 1
-
-        rowcount = self._tk.grid_size()[1]
-        for i in range(rowcount - 1):
-            self._tk.grid_rowconfigure(i, weight=0)
-
-        if len(self.texts['foot']) != 0:
-            self._tk.grid_rowconfigure(rowcount - 1, weight=1)
 
         return hilight_event
 
