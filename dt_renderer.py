@@ -18,11 +18,11 @@ class TableRenderer():
         # todo: Lock for all these settings?
         self.count_today = 5
         self.count_tomorrow = 2
+        self.count_past = 999
         self.tomorrow_before_event = False
         self.hilight_after = 10                   # minutes
         self.show_clock = True
         self.hide_until_when_done = False
-        self.past_count = 999
         self.pad_head = False
         self.pad_foot = False
 
@@ -90,6 +90,7 @@ class TableRenderer():
             now = datetime.datetime.now()
             now = now - datetime.timedelta(minutes=self.hilight_after)
             today_morning = datetime.datetime.now().replace(hour=0, minute=0)
+            today_evening = datetime.datetime.now().replace(hour=23, minute=59)
             self.events[:] = [e for e in self.events
                               if e.time >= today_morning]
 
@@ -99,8 +100,11 @@ class TableRenderer():
                 if event.time < now:
                     past_event_count += 1
 
+            left_today = [e for e in self.events if e.time <= today_evening]
             for event in self.events:
-                if past_event_count <= self.past_count:
+                if past_event_count <= self.count_past:
+                    break
+                if len(left_today) - len(to_remove) <= self.count_today:
                     break
                 if event.time < now and "noremove" not in event.modifiers:
                     to_remove.append(event)
@@ -309,13 +313,13 @@ class TableRenderer():
 
         with self.event_lock:
             for event in self.events:
-                if (event.time < today_limit
-                        and len(today_events) < self.count_today):
+                if (event.time < today_limit and
+                        len(today_events) < self.count_today):
                     today_events.append(event)
-                elif (event.time > today_limit
-                      and event.time < tomorrow_limit
-                      and len(tomorrow_events) < self.count_tomorrow
-                      and "tomorrow" in event.modifiers):
+                elif (event.time > today_limit and
+                      event.time < tomorrow_limit and
+                      len(tomorrow_events) < self.count_tomorrow and
+                      "tomorrow" in event.modifiers):
                     tomorrow_events.append(event)
                 elif event.time > tomorrow_limit:
                     break
@@ -327,9 +331,9 @@ class TableRenderer():
         limit = datetime.datetime.now()
         limit = limit - datetime.timedelta(minutes=self.hilight_after)
         for event in events:
-            if (limit < event.time
-                    and hilight_event is None
-                    and "padding" not in event.modifiers):
+            if (limit < event.time and
+                    hilight_event is None and
+                    "padding" not in event.modifiers):
                 hilight_event = event
         return hilight_event
 
@@ -344,7 +348,8 @@ class TableRenderer():
             self._tk.rowconfigure(row, minsize=0, pad=0, weight=0, uniform="")
 
         for column in range(self._tk.grid_size()[0]):
-            self._tk.columnconfigure(column, minsize=0, pad=0, weight=0, uniform="")
+            self._tk.columnconfigure(column, minsize=0, pad=0, weight=0,
+                                     uniform="")
 
         self._tk.grid_columnconfigure(self._col_text, weight=1)
         self._labels = []
@@ -365,8 +370,8 @@ class TableRenderer():
                 self._create_padding_line(row)
                 row = row + 1
 
-        if (len(self.texts['today']) != 0 and len(today_events) > 0
-                or self.show_clock):
+        if (len(self.texts['today']) != 0 and len(today_events) > 0 or
+                self.show_clock):
             event_drawn = True
             if self.show_clock:
                 self._create_head_line_with_clock(self._prepare_today_text(),
@@ -401,7 +406,7 @@ class TableRenderer():
                 self._create_padding_line(row)
             elif first and self.tomorrow_before_event:
                 self._create_event_line(event, row, self._get_normal_label,
-                    until=False, tomorrow=True)
+                                        until=False, tomorrow=True)
             else:
                 self._create_normal_event_line(event, row)
             row = row + 1
