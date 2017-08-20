@@ -7,6 +7,7 @@ from dt_event import Event
 from dt_event import UniqueEvent, UniqueTime
 from dt_event import RecurringEvent, RecurringTime, ExecutionTime
 from datetime import datetime
+from collections import OrderedDict
 import re
 
 
@@ -14,7 +15,7 @@ class ConfigReader:
     execution_pattern = re.compile(r"(\+|\-)\s*(\d+)\s*([^+-]+)(?:\s|$)")
 
     def __init__(self):
-        self.general = {"uniquedateformat": "%H:%M-%d.%m.%Y"}
+        self.general = OrderedDict(uniquedateformat="%H:%M-%d.%m.%Y")
         self.recurring = []
         self.unique = []
 
@@ -91,8 +92,8 @@ class ConfigReader:
                 event.modifiers.append(token.lower())
 
             else:
-                raise Exception("Unknown identifier: " + token
-                                + " in line: " + line)
+                raise Exception("Unknown identifier: " + token +
+                                " in line: " + line)
 
         return event
 
@@ -200,9 +201,9 @@ class ConfigWriter():
                 added.append(time)
 
                 for inner in times:
-                    if (inner not in added
-                        and inner.hour == time.hour
-                            and inner.minute == time.minute):
+                    if (inner not in added and
+                            inner.hour == time.hour and
+                            inner.minute == time.minute):
                         line += " "
                         if inner.condition == RecurringEvent.CONDITION_EVEN:
                             line += "g"
