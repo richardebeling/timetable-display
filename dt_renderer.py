@@ -22,7 +22,7 @@ class TableRenderer():
         self.hilight_after = 10                   # minutes
         self.show_clock = True
         self.hide_until_when_done = False
-        self.keep_past_events_from_today = True
+        self.past_count = 999
         self.pad_head = False
         self.pad_foot = False
 
@@ -90,14 +90,20 @@ class TableRenderer():
             now = datetime.datetime.now()
             now = now - datetime.timedelta(minutes=self.hilight_after)
             today_morning = datetime.datetime.now().replace(hour=0, minute=0)
-            if self.keep_past_events_from_today:
-                for event in self.events:
-                    if event.time < today_morning:
-                        self.events.remove(event)
-            else:
-                for event in self.events:
-                    if event.time < now:
-                        self.events.remove(event)
+            past_event_count = 0
+            for event in self.events:
+                if event.time < today_morning:
+                    self.events.remove(event)
+                elif event.time < now:
+                    past_event_count += 1
+
+            for event in self.events:
+                if past_event_count <= self.past_count:
+                    break
+
+                if event.time < now and "noremove" not in event.modifiers:
+                    self.events.remove(event)
+                    past_event_count -= 1
 
     def _remove_nodraw_events(self) -> None:
         with self.event_lock:

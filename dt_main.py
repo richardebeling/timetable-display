@@ -84,6 +84,8 @@ class DementiaTimetable():
             renderer.texts['tomorrow'] = general['tomorrow']
         if 'today' in general:
             renderer.texts['today'] = general['today']
+        if 'pastcount' in general:
+            renderer.count_past = int(general['pastcount'])
 
         if 'untiltext' in general:
             renderer.texts['untiltext'] = general['untiltext']

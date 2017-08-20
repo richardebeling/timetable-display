@@ -44,6 +44,7 @@ Whitespaces surrounding the variable or value will be stripped.
 - `untiltext`: Text to render when the "until" modifier is set for an event.
 - `todaycount`: Number of events to display for the current day.
 - `tomorrowcount`: Number of events to display for the next day.
+- `pastcount`: Number of events that have passed to display before the current event for the current day.
 - `hilightafter`: Time in minutes that every event will stay hilighted after it passed.
 - `font`: String
 - `fontsize`: Number
@@ -84,6 +85,7 @@ Also, you can append modifiers to the first line. Valid modifiers are:
 - `padding`: This event marks a padding line
 - `nodraw`: This event will not be rendered. Useful in combination with exec.
 - `exec`: This event has an execution line. See below for more detail.
+- `noremove`: This event will not be removed from the past events that are shown.
 
 The second line contains the event description that will be rendered.
 For padding events, a dummy text is still needed.
