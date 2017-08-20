@@ -90,20 +90,23 @@ class TableRenderer():
             now = datetime.datetime.now()
             now = now - datetime.timedelta(minutes=self.hilight_after)
             today_morning = datetime.datetime.now().replace(hour=0, minute=0)
+            self.events[:] = [e for e in self.events
+                              if e.time >= today_morning]
+
             past_event_count = 0
+            to_remove = []
             for event in self.events:
-                if event.time < today_morning:
-                    self.events.remove(event)
-                elif event.time < now:
+                if event.time < now:
                     past_event_count += 1
 
             for event in self.events:
                 if past_event_count <= self.past_count:
                     break
-
                 if event.time < now and "noremove" not in event.modifiers:
-                    self.events.remove(event)
+                    to_remove.append(event)
                     past_event_count -= 1
+
+            self.events[:] = [e for e in self.events if e not in to_remove]
 
     def _remove_nodraw_events(self) -> None:
         with self.event_lock:
