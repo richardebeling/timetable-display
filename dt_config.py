@@ -276,11 +276,13 @@ class ConfigWriter():
 
         lines.append("[unique]")
         for event in unique:
-            lines.append(self._get_unique_string(event, dateformat))
-            lines.append(event.description)
-            if "exec" in event.modifiers:
-                lines.append(self._get_executions_string(event))
-            lines.append("")
+            times = self._get_unique_string(event, dateformat)
+            if times:
+                lines.append(times)
+                lines.append(event.description)
+                if "exec" in event.modifiers:
+                    lines.append(self._get_executions_string(event))
+                lines.append("")
 
         return lines
 
