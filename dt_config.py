@@ -145,6 +145,7 @@ class ConfigReader:
     def parse(self, filename: str, encoding: str) -> None:
         self.recurring = []
         self.unique = []
+        self.footnotes = []
         with open(filename, "r", encoding=encoding) as f:
             section = "general"
             currentEvent = Event()
