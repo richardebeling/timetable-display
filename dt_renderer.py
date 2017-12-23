@@ -418,14 +418,17 @@ class TableRenderer():
             row = row + 1
 
         with self.footnote_lock:
-            if self.footnotes:
-                if self.pad_foot:
-                    self._create_padding_line(row)
-                    row = row + 1
-                for note in self.footnotes:
-                    self._create_foot_line(note, row)
+            if self.footnotes and self.pad_foot:
+                self._create_padding_line(row)
+                row = row + 1
+
+            first_footnote = True
+            for note in self.footnotes:
+                self._create_foot_line(note, row)
+                if first_footnote:
                     self._tk.grid_rowconfigure(row, weight=1)
-                    row = row + 1
+                    first_footnote = False
+                row = row + 1
 
         return hilight_event
 
