@@ -132,7 +132,7 @@ class UniqueEvent(Event):
 
 class FootnoteEvent(Event):
     def __init__(self):
-        super().__init__(self)
+        super().__init__()
         self._dates = []
 
     def add_footnote_date(self, t: FootnoteDate) -> None:
