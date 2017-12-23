@@ -22,7 +22,7 @@ See `./dt_main.py --help`
     Example: `{dt.hour}:{dt.minute:02d}`
 
 ### Configuration file - User Settings
-3 Sections, beginning at the markers (`[general]`, `[recurring]` or `[unique]`).
+4 Sections, beginning at the markers (`[general]`, `[recurring]`, `[unique]` or `[footnotes]`).
 Each section can occur more than once, though I hardly suggest not to do that. The cleaning mechanism will also undo that structuring in the first cleaning run.
 
 #### General Section
@@ -33,6 +33,7 @@ Whitespaces surrounding the variable or value will be stripped.
 
 #### Possible variables:
 - `uniquedateformat`: Python strptime format string, used in the unique section
+- `footnotedateformat`: Python strptime format string, used in the footnotes section
 - `head`: String that's displayed as header. Empty equals no header.
 - `foot`: Same, for footer.
 - `padhead`: Add a padding line after the header line
@@ -105,3 +106,13 @@ the `uniquedateformat` setting should not contain spaces.
 The second line gives the event descriptions just like in the recurring secion.
 
 All modifiers from the recurring section are also valid here. A third line might exist when the `exec` modifier is set.
+
+### Foonotes section
+Days where the footnote text should be replaced. This is useful for e.g. reminding of birthdays.
+For the whole day, the program will not display the `foot` text from the general section but the text for the event on this day.
+
+Again, the first line contains a timestamp and possible modifiers. If `exec` is set, the execution will take place at the start of the day.
+The execution behaviour is not tested as I don't see a use case currently, so it could be buggy.
+The format for the timestamp should be set in the general section as value of `footnotedateformat`. The default is `%d.%m` which equals DD.MM (01.10)
+
+The second line gives the text that will be displayed on this day.

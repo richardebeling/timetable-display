@@ -6,7 +6,8 @@
 from dt_event import Event
 from dt_event import UniqueEvent, UniqueTime
 from dt_event import RecurringEvent, RecurringTime, ExecutionTime
-from datetime import datetime
+from dt_event import FootnoteEvent, FootnoteDate
+from datetime import datetime, date
 from collections import OrderedDict
 import re
 
@@ -15,15 +16,21 @@ class ConfigReader:
     execution_pattern = re.compile(r"(\+|\-)\s*(\d+)\s*([^+-]+)(?:\s|$)")
 
     def __init__(self):
-        self.general = OrderedDict(uniquedateformat="%H:%M-%d.%m.%Y")
+        self.general = OrderedDict(
+                uniquedateformat="%H:%M-%d.%m.%Y",
+                footnotedateformat="%d.%m"
+        )
         self.recurring = []
         self.unique = []
+        self.footnotes = []
 
     def _finish_event(self, line: str, event: Event, section: str) -> None:
         if section == "recurring":
             self.recurring.append(event)
         elif section == "unique":
             self.unique.append(event)
+        elif section == "footnotes":
+            self.footnotes.append(event)
         else:
             raise Exception("Inside unknown section: " + line)
 
@@ -116,6 +123,25 @@ class ConfigReader:
 
         return event
 
+    def _parse_footnote_event_times(self, line: str,
+                                    dateformat: str) -> FootnoteEvent:
+        event = FootnoteEvent()
+
+        tokens = line.split()
+        for token in tokens:
+            token.strip()
+            if token in Event.VALID_MODIFIERS:
+                event.modifiers.append(token)
+            else:
+                try:
+                    d = datetime.strptime(token, dateformat)
+                    t = FootnoteDate(d.day, d.month)
+                    event.add_footnote_date(t)
+                except ValueError:
+                    raise Exception("Error parsing: " + token)
+
+        return event
+
     def parse(self, filename: str, encoding: str) -> None:
         self.recurring = []
         self.unique = []
@@ -162,6 +188,13 @@ class ConfigReader:
                     currentEvent = self._parse_unique_event_times(
                             line,
                             self.general['uniquedateformat']
+                    )
+                    expectingEventDescription = True
+
+                elif section == "footnotes":
+                    currentEvent = self._parse_footnote_event_times(
+                            line,
+                            self.general['footnotedateformat']
                     )
                     expectingEventDescription = True
 
@@ -232,14 +265,40 @@ class ConfigWriter():
 
                 if not self._has_passed(t):
 
-                    if not firsttime:
-                        line += " "
-                    else:
+                    if firsttime:
                         firsttime = False
+                    else:
+                        line += " "
 
                     line += t.strftime(dateformat)
 
                 added.append(time)
+
+        for modifier in event.modifiers:
+            line += " " + modifier
+
+        return line
+
+    def _get_footnotes_string(self, event: FootnoteEvent,
+                              dateformat: str) -> str:
+        line = ""
+        added = []
+        dates = event.get_footnote_dates()
+        firstdate = True
+
+        for d in dates:
+            if d not in added:
+                if firstdate:
+                    firstdate = False
+                else:
+                    line += " "
+
+                line += date(day=d.day, month=d.month).strftime(dateformat)
+
+                added.append(d)
+
+        for modifier in event.modifiers:
+            line += " " + modifier
 
         return line
 
@@ -255,9 +314,11 @@ class ConfigWriter():
 
     def _build_lines(self, general: dict,
                      recurring: list,
-                     unique: list) -> list:
+                     unique: list,
+                     footnotes: list) -> list:
         lines = []
-        dateformat = general["uniquedateformat"]
+        uniquedateformat = general["uniquedateformat"]
+        footnotedateformat = general["footnotedateformat"]
 
         lines.append("[general]")
         for key in general:
@@ -276,9 +337,19 @@ class ConfigWriter():
 
         lines.append("[unique]")
         for event in unique:
-            times = self._get_unique_string(event, dateformat)
+            times = self._get_unique_string(event, uniquedateformat)
             if times:
                 lines.append(times)
+                lines.append(event.description)
+                if "exec" in event.modifiers:
+                    lines.append(self._get_executions_string(event))
+                lines.append("")
+
+        lines.append("[footnotes]")
+        for event in footnotes:
+            dates = self._get_footnotes_string(event, footnotedateformat)
+            if dates:
+                lines.append(dates)
                 lines.append(event.description)
                 if "exec" in event.modifiers:
                     lines.append(self._get_executions_string(event))
@@ -287,9 +358,9 @@ class ConfigWriter():
         return lines
 
     def write(self, filename: str, general: dict,
-              recurring: list,
-              unique: list, encoding: str) -> None:
-        lines = self._build_lines(general, recurring, unique)
+              recurring: list, unique: list, footnotes: list,
+              encoding: str) -> None:
+        lines = self._build_lines(general, recurring, unique, footnotes)
         with open(filename, 'w', encoding=encoding) as f:
             f.write('\n'.join(lines))
 
@@ -302,4 +373,4 @@ class ConfigCleaner(ConfigReader, ConfigWriter):
     def clean(self, filename: str, encoding: str) -> None:
         self.parse(filename, encoding)
         self.write(filename, self.general, self.recurring, self.unique,
-                   encoding)
+                   self.footnotes, encoding)

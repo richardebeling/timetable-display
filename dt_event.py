@@ -10,6 +10,7 @@ from dt_execute import ExecutionEvent
 UniqueTime = namedtuple("UniqueTime", "day month year hour minute")
 RecurringTime = namedtuple("RecurringTime", "dow hour minute condition")
 ExecutionTime = namedtuple("ExecutionTime", "offset executable")
+FootnoteDate = namedtuple("FootnoteDate", "day month")
 
 
 class Event:
@@ -127,3 +128,22 @@ class UniqueEvent(Event):
             e.execution_times = self.execution_times
             events.append(e)
         return events
+
+
+class FootnoteEvent(Event):
+    def __init__(self):
+        super().__init__(self)
+        self._dates = []
+
+    def add_footnote_date(self, t: FootnoteDate) -> None:
+        self._dates.append(t)
+
+    def get_footnote_dates(self) -> list:
+        return self._times
+
+    def matches(self, target: date) -> bool:
+        for d in self._dates:
+            if d.day == target.day and d.month == target.month:
+                return True
+
+        return False

@@ -30,10 +30,13 @@ class TableRenderer():
                      'italics': False, 'underlined': False, 'paddingsize': 30}
         self._font_string = "Arial 30"
 
-        self.texts = {'head': "", 'foot': "", 'tomorrow': "$date$",
+        self.texts = {'head': "", 'tomorrow': "$date$",
                       'today': "$date$", 'until': "until"}
         self.colors = {'fg': "black", 'bg': "white", 'hfg': "yellow",
                        'hbg': "blue", 'pbg': "black", 'pfg': "grey"}
+
+        self.footnotes = []                       # str
+        self.footnote_lock = threading.Lock()
 
         self.events = []                          # SimpleEvent
         self.event_lock = threading.Lock()
@@ -311,10 +314,13 @@ class TableRenderer():
         tomorrow_events = []
         tomorrow_limit = today_limit + datetime.timedelta(days=1)
 
+        with self.footnote_lock:
+            today_count_limit = self.count_today - (len(self.footnotes) - 1)
+
         with self.event_lock:
             for event in self.events:
                 if (event.time < today_limit and
-                        len(today_events) < self.count_today):
+                        len(today_events) < today_count_limit):
                     today_events.append(event)
                 elif (event.time > today_limit and
                       event.time < tomorrow_limit and
@@ -411,13 +417,15 @@ class TableRenderer():
                 self._create_normal_event_line(event, row)
             row = row + 1
 
-        if len(self.texts['foot']) != 0:
-            if self.pad_foot:
-                self._create_padding_line(row)
-                row = row + 1
-            self._create_foot_line(self.texts['foot'], row)
-            self._tk.grid_rowconfigure(row, weight=1)
-            row = row + 1
+        with self.footnote_lock:
+            if self.footnotes:
+                if self.pad_foot:
+                    self._create_padding_line(row)
+                    row = row + 1
+                for note in self.footnotes:
+                    self._create_foot_line(note, row)
+                    self._tk.grid_rowconfigure(row, weight=1)
+                    row = row + 1
 
         return hilight_event
 

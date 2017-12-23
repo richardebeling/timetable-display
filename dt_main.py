@@ -78,8 +78,6 @@ class DementiaTimetable():
 
         if 'head' in general:
             renderer.texts['head'] = general['head']
-        if 'foot' in general:
-            renderer.texts['foot'] = general['foot']
         if 'tomorrow' in general:
             renderer.texts['tomorrow'] = general['tomorrow']
         if 'today' in general:
@@ -164,6 +162,12 @@ class DementiaTimetable():
         for unique_event in self._reader.unique:
             events = events + unique_event.get_next_simpleevents(t1, t2)
 
+        today = datetime.date.today()
+        footnotes = [e.description for e in self._reader.footnotes
+                     if e.matches(today)]
+        if not footnotes and "foot" in self._reader.general:
+            footnotes = [self._reader.general["foot"]]
+
         self._log("-------------------------------")
         self._log("Next Events:")
         for event in events:
@@ -176,8 +180,18 @@ class DementiaTimetable():
             self._log("At [" + str(event.time) + "]: " + event.executable)
         self._log("-------------------------------")
 
+        self._log("-------------------------------")
+        self._log("Current Footnotes:")
+        for note in footnotes:
+            self._log(note)
+        self._log("-------------------------------")
+
         with self._renderer.event_lock:
             self._renderer.events = events
+
+        with self._renderer.footnote_lock:
+            self._renderer.footnotes = footnotes
+
         self._renderer.events_changed()
 
         with self._execution_manager.event_lock:
