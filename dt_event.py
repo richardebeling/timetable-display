@@ -10,12 +10,14 @@ from dt_execute import ExecutionEvent
 UniqueTime = namedtuple("UniqueTime", "day month year hour minute")
 RecurringTime = namedtuple("RecurringTime", "dow hour minute condition")
 ExecutionTime = namedtuple("ExecutionTime", "offset executable")
-FootnoteDate = namedtuple("FootnoteDate", "day month")
+FootnoteDate = namedtuple("FootnoteDate", "day month year")
 
 
 class Event:
+    # todo: Split this up so each class has its own list of valid modifiers
+    # so the check on the config are more helpful
     VALID_MODIFIERS = ["notime", "until", "tomorrow", "padding", "exec",
-                       "nodraw", "noremove"]
+                       "nodraw", "noremove", "yearly"]
 
     def __init__(self):
         self.description = ""
@@ -27,7 +29,6 @@ class SimpleEvent(Event):
     def __init__(self):
         Event.__init__(self)
         self.time = datetime.now()
-        self.description = ""
 
     def timestring(self) -> str:
         return "{dt.hour}:{dt.minute:02}".format(dt=self.time)
@@ -139,11 +140,12 @@ class FootnoteEvent(Event):
         self._dates.append(t)
 
     def get_footnote_dates(self) -> list:
-        return self._times
+        return self._dates
 
     def matches(self, target: date) -> bool:
         for d in self._dates:
             if d.day == target.day and d.month == target.month:
-                return True
+                if "yearly" in self.modifiers or d.year == target.year:
+                    return True
 
         return False

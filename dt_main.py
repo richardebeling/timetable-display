@@ -276,5 +276,6 @@ def main():
                 if secs < 2:
                     sys.exit()
 
+
 if __name__ == "__main__":
     main()

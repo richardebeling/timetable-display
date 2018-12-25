@@ -18,7 +18,7 @@ class ConfigReader:
     def __init__(self):
         self.general = OrderedDict(
                 uniquedateformat="%H:%M-%d.%m.%Y",
-                footnotedateformat="%d.%m"
+                footnotedateformat="%d.%m.%Y"
         )
         self.recurring = []
         self.unique = []
@@ -95,7 +95,7 @@ class ConfigReader:
                 t = RecurringTime(int(dow), int(hour), int(minute), condition)
                 event.add_recurring_time(t)
 
-            elif token.lower() in Event.VALID_MODIFIERS:
+            elif token.lower() in RecurringEvent.VALID_MODIFIERS:
                 event.modifiers.append(token.lower())
 
             else:
@@ -111,7 +111,7 @@ class ConfigReader:
         tokens = line.split()
         for token in tokens:
             token.strip()
-            if token in Event.VALID_MODIFIERS:
+            if token in UniqueEvent.VALID_MODIFIERS:
                 event.modifiers.append(token)
             else:
                 try:
@@ -130,12 +130,12 @@ class ConfigReader:
         tokens = line.split()
         for token in tokens:
             token.strip()
-            if token in Event.VALID_MODIFIERS:
+            if token in FootnoteEvent.VALID_MODIFIERS:
                 event.modifiers.append(token)
             else:
                 try:
                     d = datetime.strptime(token, dateformat)
-                    t = FootnoteDate(d.day, d.month)
+                    t = FootnoteDate(d.day, d.month, d.year)
                     event.add_footnote_date(t)
                 except ValueError:
                     raise Exception("Error parsing: " + token)
@@ -294,7 +294,10 @@ class ConfigWriter():
                 else:
                     line += " "
 
-                line += date(day=d.day, month=d.month).strftime(dateformat)
+                line += (
+                    date(day=d.day, month=d.month, year=d.year)
+                    .strftime(dateformat)
+                )
 
                 added.append(d)
 
