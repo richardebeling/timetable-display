@@ -155,7 +155,12 @@ class ConfigReader:
 
             for line in f.readlines():
                 line = line.strip()
-                if not line:
+                # allow empty description lines
+                if not line and not expectingEventDescription:
+                    continue
+
+                # allow comments
+                if any(line.startswith(chars) for chars in ('#', '//', 'rem')):
                     continue
 
                 if expectingEventDescription:
