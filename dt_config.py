@@ -201,7 +201,6 @@ class ConfigReader:
                 elif section == "footnotes":
                     currentEvent = self._parse_footnote_event_times(
                             line,
-                            self.general['footnotedateformat'],
                             self.general['footnotedateparseformat'],
                     )
                     expectingEventDescription = True

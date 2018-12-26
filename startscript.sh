@@ -3,6 +3,9 @@
 # (/bin/sleep 30 && cd /home/pi/dementia-timetable && exec su pi -c './startscript.sh')
 #
 
+echo "Changing the CWD to directory of the script."
+cd "${0%/*}"
+
 echo "Making sure the desktop environment is running..."
 service lightdm status &> /dev/null
 if [ $? -ne 0 ]; then
