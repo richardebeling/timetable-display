@@ -18,7 +18,8 @@ class ConfigReader:
     def __init__(self):
         self.general = OrderedDict(
                 uniquedateformat="%H:%M-%d.%m.%Y",
-                footnotedateformat="%d.%m.%Y"
+                footnotedateformat="%d.%m.%Y",
+                footnotedateparseformat="%d.%m.%Y",
         )
         self.recurring = []
         self.unique = []
@@ -200,7 +201,8 @@ class ConfigReader:
                 elif section == "footnotes":
                     currentEvent = self._parse_footnote_event_times(
                             line,
-                            self.general['footnotedateformat']
+                            self.general['footnotedateformat'],
+                            self.general['footnotedateparseformat'],
                     )
                     expectingEventDescription = True
 
