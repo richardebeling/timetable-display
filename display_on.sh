@@ -1,4 +1,3 @@
 #!/bin/bash
 
-tvservice -p
-DISPLAY=:0 xset dpms force on
+vcgencmd display_power 1
