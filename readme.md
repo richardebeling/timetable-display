@@ -1,6 +1,7 @@
-# Dementia Timetable Readme
+# Dementia Timetable
 ## Required Libraries:
-- WatchDog - `sudo pip3 install watchdog`
+- Tkinter - `sudo apt install python3-tk`
+- WatchDog - `pip3 install watchdog`
 
 ## How to run?
 Just `./dt_main.py`
@@ -23,7 +24,12 @@ See `./dt_main.py --help`
 
 ### Configuration file - User Settings
 4 Sections, beginning at the markers (`[general]`, `[recurring]`, `[unique]` or `[footnotes]`).
-Each section can occur more than once, though I hardly suggest not to do that. The cleaning mechanism will also undo that structuring in the first cleaning run.
+Each section can occur more than once, though I hardly suggest not to do that. The cleaning mechanism will also undo
+that structuring in the first cleaning run.
+
+### Config reloading and cleaning
+The program automatically reloads the configuration file when it is changed. This allows for headless updates, e.g.
+when using a raspi, by replacing the configuration file with an updated one.
 
 #### General Section
 Simple .ini like settings:
@@ -37,11 +43,13 @@ Whitespaces surrounding the variable or value will be stripped.
 - `head`: String that's displayed as header. Empty equals no header.
 - `foot`: Same, for footer.
 - `padhead`: Add a padding line after the header line
-- `padfoot`: Add a padding line before the footer line. Note that the footer will always stick to the bottom of the screen, even without the line, so this shouldn't be necessary.
+- `padfoot`: Add a padding line before the footer line. Note that the footer will always stick to the bottom of the
+    screen, even without the line, so this shouldn't be necessary.
 - `today`: String, text before all events that happen today.
     Can contain `$date$`, which will be replaced by the current date.
 - `tomorrow`: Same as today, `$date$` will be replaced by the next day's date.
-- `tomorrowbeforeevent`: Bool, if set, the tomorrow text will not be in a seperate line but before the first event on the next day.
+- `tomorrowbeforeevent`: Bool, if set, the tomorrow text will not be in a seperate line but before the first event on
+    the next day.
 - `untiltext`: Text to render when the "until" modifier is set for an event.
 - `todaycount`: Number of events to display for the current day.
 - `tomorrowcount`: Number of events to display for the next day.
@@ -59,25 +67,21 @@ Whitespaces surrounding the variable or value will be stripped.
 - `hfg`: foreground color for a hilighted event
 - `pbg`: background color for an event in the past
 - `pfg`: foreground color for an event in the past
-- `arrow`: String, file name of an image (png) that will be rendered if the
-    `arrow` modifier is set for an event
-- `showclock`: Bool, the program will show a clock ((h)h:mm) in the upper
-    right corner
-- `hideuntilwhendone`: Bool, the "until" keyboard will disappear in front of
-    past events
+- `arrow`: String, file name of an image (png) that will be rendered if the `arrow` modifier is set for an event
+- `showclock`: Bool, the program will show a clock ((h)h:mm) in the upper right corner
+- `hideuntilwhendone`: Bool, the "until" keyboard will disappear in front of past events
 
 ### Recurring section
-Events that are recurring in a two-week-period or more often.
-Each event consists of two or three lines, depending on whether the `exec` modifier is set.
+Events that are recurring in a two-week-period or more often.  Each event consists of two or three lines, depending on
+whether the `exec` modifier is set.
 
-The first linie specifies the times when this event happens. It consists of the
-time of the day followed by the days where it happens. Possible day modifiers are
-`e`/`g` and `o`/`u` for even and odd weeks.
+The first linie specifies the times when this event happens. It consists of the time of the day followed by the days
+where it happens. Possible day modifiers are `e`/`g` and `o`/`u` for even and odd weeks.
 
 Example: `8:00 e1 o2 10:00 o1 e2`
 
-This event happens at 8:00 Mondays on even weeks, 8:00 Tuesdays on odd weeks,
-10:00 Mondays on off weeks, Tuesdays on even weeks
+This event happens at 8:00 Mondays on even weeks, 8:00 Tuesdays on odd weeks, 10:00 Mondays on odd weeks, Tuesdays on
+even weeks.
 
 Also, you can append modifiers to the first line. Valid modifiers are:
 - `notime`: Don't render the time for this event
@@ -88,20 +92,19 @@ Also, you can append modifiers to the first line. Valid modifiers are:
 - `exec`: This event has an execution line. See below for more detail.
 - `noremove`: This event will not be removed from the past events that are shown.
 
-The second line contains the event description that will be rendered.
-For padding events, a dummy text is still needed.
+The second line contains the event description that will be rendered.  For padding events, a dummy text is still needed.
 
-A third line (execution line) is only legal if the `exec` modifier is set. It consist of offsets to the event's time(s) plus the strings that should be executed at that time.
+A third line (execution line) is only legal if the `exec` modifier is set. It consist of offsets to the event's time(s)
+plus the strings that should be executed at that time.
 
 Example: `+0 ./script.sh param1 paramt2 -5 ./another.sh test`
 
 ### Unique section
-Events that are unique or reoccur less often than once per two weeks or unperiodically.
-Each event consists of two or three lines, depending on whether the `exec` modifier is set.
+Events that are unique or reoccur less often than once per two weeks or unperiodically. Each event consists of two or
+three lines, depending on whether the `exec` modifier is set.
 
-The first line gives the timestamps when these
-events happen. More than one timestamp can be given, seperated by spaces. Thus,
-the `uniquedateformat` setting should not contain spaces.
+The first line gives the timestamps when these events happen.  More than one timestamp can be given, seperated by
+spaces. Thus, the `uniquedateformat` setting should not contain spaces.
 
 The second line gives the event descriptions just like in the recurring secion.
 
@@ -109,10 +112,12 @@ All modifiers from the recurring section are also valid here. A third line might
 
 ### Foonotes section
 Days where the footnote text should be replaced. This is useful for e.g. reminding of birthdays.
-For the whole day, the program will not display the `foot` text from the general section but the text for the event on this day.
+For the whole day, the program will not display the `foot` text from the general section but the text for the event on
+this day.
 
-Again, the first line contains a timestamp and possible modifiers. If `exec` is set, the execution will take place at the start of the day.
-The execution behaviour is not tested as I don't see a use case currently, so it could be buggy.
-The format for the timestamp should be set in the general section as value of `footnotedateformat`. The default is `%d.%m` which equals DD.MM (01.10)
+Again, the first line contains a timestamp and possible modifiers. If `exec` is set, the execution will take place at
+the start of the day. The execution behaviour is not tested as I don't see a use case currently, so it could be buggy.
+The format for the timestamp should be set in the general section as value of `footnotedateformat`. The default is
+`%d.%m` which equals DD.MM (01.10)
 
 The second line gives the text that will be displayed on this day.
