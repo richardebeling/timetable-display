@@ -1,4 +1,7 @@
 # Dementia Timetable
+
+![Screenshot of the time table](/screenshot.png?raw=true "Screenshot of the time table")
+
 ## Required Libraries:
 - Tkinter - `sudo apt install python3-tk`
 - WatchDog - `pip3 install watchdog`
