@@ -1,4 +1,7 @@
-# Dementia Timetable
+# Timetable Display
+
+Non-interactive automatic display of timetables originally written to guide people suffering from dementia through
+their day.
 
 ![Screenshot of the time table](/screenshot.png?raw=true "Screenshot of the time table")
 

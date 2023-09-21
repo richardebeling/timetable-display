@@ -1,6 +1,6 @@
 #!/bin/python3
 
-# Event classes for the dementia timetable program
+# Event classes
 
 from collections import namedtuple
 from datetime import datetime, timedelta, date

@@ -1,7 +1,6 @@
 #!/bin/python3
 
-# Config parser for the dementia timetable program.
-# For an example config file, see "example.cfg"
+# Config parser. For an example config file, see "example.cfg"
 
 from dt_event import Event
 from dt_event import UniqueEvent, UniqueTime

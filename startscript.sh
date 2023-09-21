@@ -1,6 +1,6 @@
 #!/bin/bash
 # Example rc.local entry:
-# (/bin/sleep 30 && cd /home/pi/dementia-timetable && exec su pi -c './startscript.sh')
+# (/bin/sleep 30 && cd /home/pi/timetable-display && exec su pi -c './startscript.sh')
 #
 
 echo "Changing the CWD to directory of the script."
@@ -21,7 +21,7 @@ if [ $? -eq 0 ]; then
     exit
 fi
 
-echo "Starting dementia timetable in a new tmux session..."
+echo "Starting timetable in a new tmux session..."
 tmux new-session -s $_SNAME -x 140 -y 35 -d
 tmux send-keys 'DISPLAY=:0 LANG=de_DE.utf8 ./dt_main.py -f' Enter
 

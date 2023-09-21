@@ -32,9 +32,9 @@ class ConfigChangeHandler(FileSystemEventHandler):
             self._event.set()
 
 
-class DementiaTimetable():
+class Timetable():
     def __init__(self, fullscreen):
-        self._log("Dementia Timetable started.")
+        self._log("Timetable started.")
         if fullscreen:
             self._log("Starting in fullscreen mode.")
 
@@ -264,7 +264,7 @@ def main():
 
     while not exited_gracefully:
         try:
-            table = DementiaTimetable(args.fullscreen)
+            table = Timetable(args.fullscreen)
             table.mainloop()
             exited_gracefully = True
         except Exception:
